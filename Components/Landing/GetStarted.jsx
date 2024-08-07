@@ -1,19 +1,117 @@
-import { Platform, StatusBar, StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import { Image, Platform, Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
+import React from "react";
+import LinearGradient from "react-native-linear-gradient";
 
 const GetStarted = () => {
   return (
-    <View style={styles.container
-    }>
-      <Text>GetStarted</Text>
-    </View>
-  )
-}
+    <View style={styles.container}>
+      <View style={styles.startedCon}>
+        <Text style={{ fontSize: 20, fontWeight: "bold" }}>Get Started..</Text>
+      </View>
+      <View style={styles.imageCon}>
+        <Image source={require("../../assets/cam.png")} />
+        <Text style={styles.imageText}>KAP</Text>
 
-export default GetStarted
+        <Pressable style={styles.login}>
+          <Text style={styles.loginText}>Log In</Text>
+        </Pressable>
+      </View>
+      <View style={styles.curvedView}>
+        <Pressable style={styles.login1}>
+          <Text style={styles.loginText1}>Sign Up</Text>
+        </Pressable>
+
+        <View style={styles.social}>
+          <Text style={styles.socialText}>Connect with</Text>
+          <View style={styles.socialFlex}>
+            <Image source={require("../../assets/google.png")}></Image>
+            <Image source={require("../../assets/fb.png")}></Image>
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+};
+
+export default GetStarted;
 
 const styles = StyleSheet.create({
-    container:{
-        paddingTop: Platform.OS === "android"? StatusBar.currentHeight:0
-    }
-})
+  container: {
+    flex: 1,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+    backgroundColor: "#fff",
+  },
+  startedCon: {
+    marginTop: 100,
+    paddingHorizontal: 20,
+  },
+
+  imageCon: {
+    alignItems: "center",
+    marginTop: 80,
+    width: "100%",
+    paddingHorizontal: 30,
+  },
+  imageText: {
+    fontSize: 40,
+    fontWeight: "bold",
+  },
+  login: {
+    backgroundColor: "#142D13",
+    padding: 10,
+    width: "100%",
+    borderRadius: 20,
+    marginVertical: 20,
+  },
+
+  login1: {
+    backgroundColor: "#fff",
+    padding: 10,
+    width: "100%",
+    borderRadius: 14,
+    marginVertical: 20,
+  },
+
+  loginText: {
+    fontSize: 20,
+    color: "#fff",
+    textAlign: "center",
+    fontWeight: "bold",
+  },
+
+  loginText1: {
+    fontSize: 20,
+    color: "#132812",
+    textAlign: "center",
+    fontWeight: "bold",
+  },
+
+  curvedView: {
+    borderTopEndRadius: 50,
+    borderTopStartRadius: 50,
+    backgroundColor: "#132812",
+    paddingHorizontal: 40,
+    height: "100%",
+  },
+  social: {
+    borderTopWidth: 2,
+    borderColor: "#fff",
+    marginTop: 100,
+  },
+  socialText: {
+    backgroundColor: "#132812",
+    padding: 10,
+    width: 140,
+    position: "relative",
+    bottom: 20,
+    left: "30%",
+    textAlign: "center",
+    color: "#fff",
+  },
+
+  socialFlex: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 20,
+  },
+});

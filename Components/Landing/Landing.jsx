@@ -1,5 +1,14 @@
-import { Image, Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React from 'react'
+import {
+  Image,
+  Platform,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import React from "react";
+import { router } from "expo-router";
 
 const Landing = () => {
   return (
@@ -17,7 +26,7 @@ const Landing = () => {
         </Text>
         <Image
           source={require("../../assets/Vector.png")}
-          style={{ marginVertical: 35 }}
+          style={styles.imageStyle}
         />
         <Text style={styles.landTitle}>KAP</Text>
         <Text style={styles.landTitle1}>
@@ -26,15 +35,22 @@ const Landing = () => {
         </Text>
       </View>
       <View style={styles.btnCon}>
-        <TouchableOpacity style={styles.btnTrigger}>
-            <Text style={{fontSize: 18, fontWeight:"bold", textAlign:'center',}}>Get Started</Text>
+        <TouchableOpacity
+          style={styles.btnTrigger}
+          onPress={() => router.push("login")}
+        >
+          <Text
+            style={styles.textbtn}
+          >
+            Get Started
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
   );
-}
+};
 
-export default Landing
+export default Landing;
 
 const styles = StyleSheet.create({
   container: {
@@ -55,20 +71,29 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "bold",
     color: "white",
-    textAlign:"center",
+    textAlign: "center",
     width: 300,
-    marginTop:17,
-    lineHeight:24,
+    marginTop: 17,
+    lineHeight: 24,
   },
-  btnCon:{
+  btnCon: {
     position: "relative",
     top: 200,
     paddingHorizontal: 50,
   },
-  btnTrigger:{
-    backgroundColor:"#fff",
-    padding:15,
-    borderRadius:15
-
-  }
+  btnTrigger: {
+    backgroundColor: "#fff",
+    padding: 15,
+    borderRadius: 15,
+  },
+  imageStyle: {
+    marginVertical: 35,
+    width: 120,
+    height: 120,
+  },
+  textbtn: { 
+    fontSize: 18, 
+    fontWeight: "bold", 
+    textAlign: "center"
+   },
 });

@@ -15,7 +15,7 @@ const SplashScreen = () => {
         <View style={styles.logoContainer}>
           <Image source={
             require("../assets/Vector.png")
-          }/>
+          } style={{width:120, height:120,}}/>
         <Text style={styles.title}>KAP</Text>
         </View>
       
@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   title: {
-    fontSize: 54,
+    fontSize: 34,
     color: "#fff",
     textAlign: "center",
     fontWeight: "bold",
