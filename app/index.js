@@ -10,7 +10,7 @@ export default function Page() {
     setIsSplash(true)
     setTimeout(()=>{
       setIsSplash(false)
-    },3000)
+    },3700)
   }, [])
   
   return (

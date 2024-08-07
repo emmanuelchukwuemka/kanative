@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
+import { View, Text, StyleSheet, Image, ActivityIndicator } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 
 
@@ -18,6 +18,8 @@ const SplashScreen = () => {
           } style={{width:120, height:120,}}/>
         <Text style={styles.title}>KAP</Text>
         </View>
+
+        <ActivityIndicator color={"#fff"} size={40} style={styles.loader}/>
       
     </View>
         </View>
@@ -39,7 +41,10 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginVertical: 20,
   },
-  logoContainer: {},
+  loader: {
+    position:"relative",
+    top: 200,
+  },
 });
 
 export default SplashScreen;
