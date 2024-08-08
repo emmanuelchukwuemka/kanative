@@ -37,7 +37,7 @@ const Landing = () => {
       <View style={styles.btnCon}>
         <TouchableOpacity
           style={styles.btnTrigger}
-          onPress={() => router.push("login")}
+          onPress={() => router.push("getstarted")}
         >
           <Text
             style={styles.textbtn}

@@ -1,6 +1,7 @@
 import { Image, Platform, Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
 import React from "react";
 import LinearGradient from "react-native-linear-gradient";
+import { router } from "expo-router";
 
 const GetStarted = () => {
   return (
@@ -12,7 +13,7 @@ const GetStarted = () => {
         <Image source={require("../../assets/cam.png")} />
         <Text style={styles.imageText}>KAP</Text>
 
-        <Pressable style={styles.login}>
+        <Pressable style={styles.login} onPress={()=>(router.push("login"))}>
           <Text style={styles.loginText}>Log In</Text>
         </Pressable>
       </View>

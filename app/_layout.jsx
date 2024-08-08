@@ -6,7 +6,15 @@ const Rootlayout = () => {
   return (
     <Stack>
       <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="login" options={{ headerShown: false }} />
+      <Stack.Screen name="getstarted" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="login"
+        options={{
+          headerTitle: "",
+          headerStyle: { backgroundColor: "#132812" },
+          headerShown:false
+        }}
+      />
     </Stack>
   );
 }

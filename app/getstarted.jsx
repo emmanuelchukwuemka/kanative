@@ -1,20 +1,19 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
-import UserLogin from '../Components/Auth/UserLogin'
+import GetStarted from '../Components/Landing/GetStarted'
 
-const login = () => {
+const getstarted = () => {
   return (
     <View style={styles.container}>
-      <UserLogin/>
+    <GetStarted/>
     </View>
   )
 }
 
-export default login
+export default getstarted
 
 const styles = StyleSheet.create({
     container:{
         flex:1,
-        backgroundColor:"white"
     }
 })
