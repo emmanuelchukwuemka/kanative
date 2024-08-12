@@ -1,9 +1,19 @@
-import { Image, Platform, Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
-import React from "react";
-import LinearGradient from "react-native-linear-gradient";
+import React, { useEffect } from "react";
+import {
+  View,
+  Text,
+  Image,
+  Pressable,
+  StyleSheet,
+  Platform,
+  StatusBar,
+} from "react-native";
 import { router } from "expo-router";
 
+
+
 const GetStarted = () => {
+
   return (
     <View style={styles.container}>
       <View style={styles.startedCon}>
@@ -13,22 +23,16 @@ const GetStarted = () => {
         <Image source={require("../../assets/cam.png")} />
         <Text style={styles.imageText}>KAP</Text>
 
-        <Pressable style={styles.login} onPress={()=>(router.push("login"))}>
+        <Pressable style={styles.login} onPress={() => router.push("login")}>
           <Text style={styles.loginText}>Log In</Text>
         </Pressable>
       </View>
       <View style={styles.curvedView}>
-        <Pressable style={styles.login1}>
+        <Pressable style={styles.login1} onPress={()=>router.push("signup")}>
           <Text style={styles.loginText1}>Sign Up</Text>
         </Pressable>
 
-        <View style={styles.social}>
-          <Text style={styles.socialText}>Connect with</Text>
-          <View style={styles.socialFlex}>
-            <Image source={require("../../assets/google.png")}></Image>
-            <Image source={require("../../assets/fb.png")}></Image>
-          </View>
-        </View>
+
       </View>
     </View>
   );
@@ -46,7 +50,6 @@ const styles = StyleSheet.create({
     marginTop: 100,
     paddingHorizontal: 20,
   },
-
   imageCon: {
     alignItems: "center",
     marginTop: 80,
@@ -64,7 +67,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginVertical: 20,
   },
-
   login1: {
     backgroundColor: "#fff",
     padding: 10,
@@ -72,21 +74,18 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     marginVertical: 20,
   },
-
   loginText: {
     fontSize: 20,
     color: "#fff",
     textAlign: "center",
     fontWeight: "bold",
   },
-
   loginText1: {
     fontSize: 20,
     color: "#132812",
     textAlign: "center",
     fontWeight: "bold",
   },
-
   curvedView: {
     borderTopEndRadius: 50,
     borderTopStartRadius: 50,
@@ -109,7 +108,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#fff",
   },
-
   socialFlex: {
     flexDirection: "row",
     justifyContent: "center",

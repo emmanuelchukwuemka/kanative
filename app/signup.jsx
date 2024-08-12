@@ -4,7 +4,7 @@ import UserSignup from '../Components/Auth/UserSignup'
 
 const signup = () => {
   return (
-    <View style={style.container}>
+    <View style={styles.container}>
      <UserSignup/>
     </View>
   )
@@ -15,6 +15,6 @@ export default signup
 const styles = StyleSheet.create({
     container:{
         flex:1,
-        paddingTop:Platform.OS==="android"?StatusBar.currentHeight:0
+
     }
 })

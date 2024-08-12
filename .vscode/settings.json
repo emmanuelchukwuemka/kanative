@@ -3,6 +3,7 @@
     "getstarted",
     "Pressable",
     "Rootlayout",
-    "Signup"
+    "Signup",
+    "supabase"
   ]
 }

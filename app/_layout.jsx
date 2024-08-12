@@ -8,7 +8,7 @@ const Rootlayout = () => {
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="getstarted" options={{ headerShown: false }} />
       <Stack.Screen
-        name="login"
+        name="signup"
         options={{
           headerTitle: "",
           headerStyle: { backgroundColor: "#132812" },
