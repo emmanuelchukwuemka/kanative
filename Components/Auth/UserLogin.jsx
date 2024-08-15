@@ -16,24 +16,17 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 
 const UserLogin = () => {
-  const [showPassword, setShowPassword] = useState(false); // State to handle password visibility
+  const [showPassword, setShowPassword] = useState(false); 
 
-  const backendUrl = "http://localhost:8000/user/register";
+  const loginUrl = "http://172.20.10.4:8000/user/login";
 
   const validationSchema = Yup.object().shape({
-    username: Yup.string().required("Username is required"),
-    email: Yup.string().email("Invalid email").required("Email is required"),
     phone: Yup.string().required("Phone number is required"),
     password: Yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
-    confirmPassword: Yup.string()
-      .oneOf([Yup.ref('password'), null], "Passwords must match")
-      .required("Confirm Password is required"),
   });
 
   const handleRegister = (values) => {
-    axios.post(backendUrl, {
-      username: values.username,
-      email: values.email,
+    axios.post(loginUrl, {
       phone: values.phone,
       password: values.password,
     })
@@ -42,7 +35,7 @@ const UserLogin = () => {
 
       })
       .catch(error => {
-        console.error(error);
+        console.log(error);
       });
   };
 
@@ -63,42 +56,17 @@ const UserLogin = () => {
         >
           <Icon name="chevron-left" size={30} color="black" />
         </TouchableOpacity>
-        <Text style={styles.h1}>Register</Text>
-        <Text style={styles.p}>Register with correct information</Text>
+        <Text style={styles.h1}>Welcome back!</Text>
+        <Text style={styles.p}>Please login to your account</Text>
       </View>
 
       <Formik
-        initialValues={{ username: "", email: "", phone: "", password: "", confirmPassword: "" }}
+        initialValues={{ phone: "", password: ""}}
         validationSchema={validationSchema}
         onSubmit={handleRegister}
       >
         {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
           <View style={styles.form}>
-            <View style={styles.inputContainer}>
-              <Icon name="person" size={20} color="gray" style={styles.icon} />
-              <TextInput
-                placeholder="Username"
-                style={styles.input}
-                onChangeText={handleChange("username")}
-                onBlur={handleBlur("username")}
-                value={values.username}
-              />
-            </View>
-            {touched.username && errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
-
-            <View style={styles.inputContainer}>
-              <Icon name="email" size={20} color="gray" style={styles.icon} />
-              <TextInput
-                placeholder="Email Address"
-                style={styles.input}
-                onChangeText={handleChange("email")}
-                onBlur={handleBlur("email")}
-                value={values.email}
-                keyboardType="email-address"
-              />
-            </View>
-            {touched.email && errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-
             <View style={styles.inputContainer}>
               <Icon name="phone" size={20} color="gray" style={styles.icon} />
               <TextInput
@@ -108,6 +76,7 @@ const UserLogin = () => {
                 onBlur={handleBlur("phone")}
                 value={values.phone}
                 keyboardType="phone-pad"
+                maxLength={11}
               />
             </View>
             {touched.phone && errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
@@ -135,37 +104,11 @@ const UserLogin = () => {
             </View>
             {touched.password && errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
 
-            <View style={styles.inputContainer}>
-              <Icon name="lock" size={20} color="gray" style={styles.icon} />
-              <TextInput
-                placeholder="Confirm Password"
-                secureTextEntry={!showPassword}
-                style={styles.input}
-                onChangeText={handleChange("confirmPassword")}
-                onBlur={handleBlur("confirmPassword")}
-                value={values.confirmPassword}
-              />
-              <TouchableOpacity
-                onPress={() => setShowPassword(!showPassword)}
-                style={styles.showPasswordIcon}
-              >
-                <Icon
-                  name={showPassword ? "visibility" : "visibility-off"}
-                  size={20}
-                  color="gray"
-                />
-              </TouchableOpacity>
-            </View>
-            {touched.confirmPassword && errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
-
             <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-              <Text style={styles.buttonText}>Sign Up</Text>
+              <Text style={styles.buttonText}>Login</Text>
             </TouchableOpacity>
-            <Text style={{ textAlign: "center", fontSize: 15 }}>
-              Already have an account?{" "}
-              <Text style={{ color: "#2C702A", fontWeight: "bold" }}>
-                Sign up here
-              </Text>
+            <Text style={{ textAlign: "center", fontSize: 15 }} onPress={() => navigation.navigate("ForgotPassword")}>
+             forgot password?
             </Text>
           </View>
         )}
@@ -187,7 +130,7 @@ const styles = StyleSheet.create({
     borderColor: "gray",
     borderWidth: 1,
     borderRadius: 10,
-    marginTop: 10,
+    marginTop: 5,
     paddingHorizontal: 10,
   },
   input: {
@@ -223,20 +166,20 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
     marginVertical: 20,
-    color: "#fff",
+    color: "#515050",
   },
   p: {
     textAlign: "center",
     fontSize: 14,
-    color: "#fff",
+    color: "#515050",
     marginTop: -10,
   },
   curved: {
-    backgroundColor: "#132812",
+    marginVertical:20,
     borderBottomStartRadius: 200,
     borderBottomEndRadius: 200,
-    paddingVertical: 60,
-    alignItems: "center", // Center content horizontally
+    paddingVertical: 80,
+    alignItems: "center",
   },
   backButton: {
     position: "absolute",
@@ -248,6 +191,6 @@ const styles = StyleSheet.create({
   },
   form: {
     paddingHorizontal: 30,
-    paddingTop: 50,
+
   },
 });

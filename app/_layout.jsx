@@ -15,6 +15,14 @@ const Rootlayout = () => {
           headerShown:false
         }}
       />
+       <Stack.Screen
+              name="login"
+              options={{
+                headerTitle: "",
+                headerStyle: { backgroundColor: "#132812" },
+                headerShown:false
+              }}
+            />
     </Stack>
   );
 }

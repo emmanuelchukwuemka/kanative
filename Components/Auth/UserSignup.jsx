@@ -11,6 +11,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Modal,
+  Image,
 } from "react-native";
 import React, { useState } from "react";
 import Icon from "react-native-vector-icons/MaterialIcons";
@@ -31,9 +32,6 @@ const UserSignup = () => {
     email: Yup.string().email("Invalid email").required("Email is required"),
     phone: Yup.string().required("Phone number is required"),
     password: Yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
-    confirmPassword: Yup.string()
-      .oneOf([Yup.ref('password'), null], "Passwords must match")
-      .required("Confirm Password is required"),
   });
 
   const handleRegister = (values, { resetForm }) => {
@@ -44,7 +42,6 @@ const UserSignup = () => {
       password: values.password,
     })
       .then(response => {
-        console.log(response.data);
         resetForm();
         setModalVisible(true);
       })
@@ -191,6 +188,7 @@ const UserSignup = () => {
         >
           <View style={styles.modalContainer}>
             <View style={styles.modalView}>
+                <Image source={require("../../assets/checked.png")} style={styles.image}/>
               <Text style={styles.modalText}>Your account has been created successfully</Text>
               <TouchableOpacity
                 style={styles.modalButton}
@@ -292,7 +290,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalView: {
-    width: 300,
+    width: 350,
     backgroundColor: "white",
     borderRadius: 20,
     padding: 20,
@@ -314,11 +312,18 @@ const styles = StyleSheet.create({
   modalButton: {
     backgroundColor: "#132812",
     borderRadius: 10,
-    padding: 10,
+    padding: 13,
+    width: "100%",
+    marginVertical:10,
   },
   modalButtonText: {
     color: "white",
     fontWeight: "bold",
     textAlign: "center",
   },
+  image: {
+      width:80,
+      height:80,
+      marginVertical:30,
+      }
 });
