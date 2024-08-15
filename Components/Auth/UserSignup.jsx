@@ -25,7 +25,7 @@ const UserSignup = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const router = useRouter();
 
-  const backendUrl = "http://192.168.10.75:8000/user/register";
+  const backendUrl = "http://172.20.10.4:8000/user/register";
 
   const validationSchema = Yup.object().shape({
     username: Yup.string().required("Username is required"),

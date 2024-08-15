@@ -14,6 +14,7 @@ import { router } from "expo-router";
 import axios from "axios";
 import { Formik } from "formik";
 import * as Yup from "yup";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const UserLogin = () => {
   const [showPassword, setShowPassword] = useState(false); 
@@ -31,8 +32,11 @@ const UserLogin = () => {
       password: values.password,
     })
       .then(response => {
-        console.log(response.data);
-
+        // console.log(response.data.user);
+        if (response.status == 200){
+          router.push("dashboard")
+        }
+        // AsyncStorage.setItem("userData", JSON.stringify(response.data.user))
       })
       .catch(error => {
         console.log(error);

@@ -5,6 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a62bc644-1e5c-4444-b52d-f7f491af4b5c" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/dictionaries/dr_anonymous.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/checked.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Components/Auth/UserLogin.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/Components/Auth/UserLogin.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Components/Auth/UserSignup.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/Components/Auth/UserSignup.jsx" afterDir="false" />
