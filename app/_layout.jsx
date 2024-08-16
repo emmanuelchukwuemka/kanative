@@ -5,6 +5,7 @@ import { Stack } from 'expo-router'
 const Rootlayout = () => {
   return (
     <Stack>
+      <Stack.Screen name="(tabs)" options={{ headerShown: false,}} />
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="getstarted" options={{ headerShown: false }} />
       <Stack.Screen
@@ -28,13 +29,6 @@ const Rootlayout = () => {
         options={{
           headerTitle: "",
           headerStyle: { backgroundColor: "#132812" },
-          headerShown: false,
-        }}
-      />
-
-      <Stack.Screen
-        name="dashboard"
-        options={{
           headerShown: false,
         }}
       />

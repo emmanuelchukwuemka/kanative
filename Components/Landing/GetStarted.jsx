@@ -23,12 +23,12 @@ const GetStarted = () => {
         <Image source={require("../../assets/cam.png")} />
         <Text style={styles.imageText}>KAP</Text>
 
-        <Pressable style={styles.login} onPress={() => router.push("login")}>
+        <Pressable style={styles.login} onPress={() => router.replace("login")}>
           <Text style={styles.loginText}>Log In</Text>
         </Pressable>
       </View>
       <View style={styles.curvedView}>
-        <Pressable style={styles.login1} onPress={()=>router.push("signup")}>
+        <Pressable style={styles.login1} onPress={()=>router.replace("signup")}>
           <Text style={styles.loginText1}>Sign Up</Text>
         </Pressable>
 

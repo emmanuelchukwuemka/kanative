@@ -7,14 +7,15 @@
     <list default="true" id="a62bc644-1e5c-4444-b52d-f7f491af4b5c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Components/Auth/UserLogin.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/Components/Auth/UserLogin.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Components/Auth/UserSignup.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/Components/Auth/UserSignup.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Components/ForgotPassword/ForgotPassword.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/Components/ForgotPassword/ForgotPassword.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Components/Dashboard/Dashboard.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/Components/Dashboard/Dashboard.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Components/Landing/GetStarted.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/Components/Landing/GetStarted.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Components/SplashScreen.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(tabs)/_layout.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(tabs)/_layout.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(tabs)/home.jsx" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/app/_layout.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/_layout.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/dashboard.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/dashboard.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/forgot.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/forgot.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/dashboard.jsx" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/app/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

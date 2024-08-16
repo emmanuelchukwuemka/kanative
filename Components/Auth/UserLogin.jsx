@@ -34,7 +34,16 @@ const UserLogin = () => {
       .then(response => {
         // console.log(response.data.user);
         if (response.status == 200){
-          router.push("dashboard")
+          let userInfo = JSON.stringify(response.data.user)
+          
+          AsyncStorage.setItem("user", userInfo)
+          .then(()=>{
+            console.log("saved to local storage!");
+            router.replace("/(tabs)/dashboard")
+            
+          })
+          
+
         }
         // AsyncStorage.setItem("userData", JSON.stringify(response.data.user))
       })

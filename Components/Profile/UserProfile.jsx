@@ -1,16 +1,8 @@
-import React, { useState, useCallback } from "react";
-import {
-  Platform,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  ScrollView,
-  RefreshControl,
-} from "react-native";
+import { RefreshControl, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native'
+import React from 'react'
 
-const Dashboard = () => {
-  const [refreshing, setRefreshing] = useState(false);
+const UserProfile = () => {
+ const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -30,23 +22,13 @@ const Dashboard = () => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        <Text>Dashboard</Text>
+        <Text>user profile</Text>
         {/* Add other components/content here */}
       </ScrollView>
     </SafeAreaView>
-  );
-};
+  )
+}
 
-export default Dashboard;
+export default UserProfile
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-  },
-  scrollView: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});
+const styles = StyleSheet.create({})
