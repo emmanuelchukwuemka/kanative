@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, Image, ActivityIndicator } from "react-native";
-import LinearGradient from "react-native-linear-gradient";
+
 
 
 const SplashScreen = () => {
@@ -14,7 +14,7 @@ const SplashScreen = () => {
     >
         <View style={styles.logoContainer}>
           <Image source={
-            require("../assets/Vector.png")
+            require("../../assets/Vector.png")
           } style={{width:120, height:120,}}/>
         <Text style={styles.title}>KAP</Text>
         </View>

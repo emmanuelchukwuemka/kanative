@@ -25,7 +25,7 @@ const UserSignup = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const router = useRouter();
 
-  const backendUrl = "http://172.20.10.4:8000/user/register";
+  const backendUrl = "http://192.168.10.142:8000/user/register";
 
   const validationSchema = Yup.object().shape({
     username: Yup.string().required("Username is required"),
@@ -114,7 +114,7 @@ const UserSignup = () => {
                     onBlur={handleBlur("phone")}
                     value={values.phone}
                     keyboardType="phone-pad"
-                    maxLength={11}
+                    maxLength={15}
                   />
                 </View>
                 {touched.phone && errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
@@ -170,7 +170,7 @@ const UserSignup = () => {
                 </TouchableOpacity>
                 <Text style={{ textAlign: "center", fontSize: 15 }}>
                   Already have an account?{" "}
-                  <Text style={{ color: "#2C702A", fontWeight: "bold" }}>
+                  <Text style={{ color: "#2C702A", fontWeight: "bold" }} onPress={()=>router.replace("login")}>
                     Login here
                   </Text>
                 </Text>

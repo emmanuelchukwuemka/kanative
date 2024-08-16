@@ -17,7 +17,7 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const ForgotPassword = () => {
+const OtpAuth = () => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [otp, setOtp] = useState(["", "", "", ""]);
 
@@ -122,7 +122,7 @@ const ForgotPassword = () => {
             )}
 
             <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-              <Text style={styles.buttonText}>Proceed</Text>
+              <Text style={styles.buttonText}>Verify</Text>
             </TouchableOpacity>
             <Text style={{ textAlign: "center", fontSize: 15 }}>
               Please remember that OTP will be sent to you to complete your
@@ -134,12 +134,11 @@ const ForgotPassword = () => {
           </View>
         )}
       </Formik>
-
     </KeyboardAvoidingView>
   );
 };
 
-export default ForgotPassword;
+export default OtpAuth;
 
 const styles = StyleSheet.create({
   container: {
@@ -211,5 +210,4 @@ const styles = StyleSheet.create({
   form: {
     paddingHorizontal: 30,
   },
-  
 });

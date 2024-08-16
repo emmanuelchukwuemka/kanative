@@ -4,7 +4,7 @@ import ForgotPassword from '../Components/ForgotPassword/ForgotPassword'
 
 const forgot = () => {
   return (
-    <View>
+    <View style={styles.container}>
       <ForgotPassword/>
     </View>
   )
@@ -12,4 +12,9 @@ const forgot = () => {
 
 export default forgot
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+  },
+});

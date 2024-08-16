@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 80,
     width: "100%",
-    paddingHorizontal: 30,
+    paddingHorizontal: 40,
   },
   imageText: {
     fontSize: 40,

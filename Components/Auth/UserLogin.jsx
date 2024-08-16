@@ -19,7 +19,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const UserLogin = () => {
   const [showPassword, setShowPassword] = useState(false); 
 
-  const loginUrl = "http://172.20.10.4:8000/user/login";
+  const loginUrl = "http://192.168.10.142:8000/user/login";
 
   const validationSchema = Yup.object().shape({
     phone: Yup.string().required("Phone number is required"),
@@ -80,7 +80,7 @@ const UserLogin = () => {
                 onBlur={handleBlur("phone")}
                 value={values.phone}
                 keyboardType="phone-pad"
-                maxLength={11}
+                maxLength={15}
               />
             </View>
             {touched.phone && errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
@@ -111,7 +111,7 @@ const UserLogin = () => {
             <TouchableOpacity style={styles.button} onPress={handleSubmit}>
               <Text style={styles.buttonText}>Login</Text>
             </TouchableOpacity>
-            <Text style={{ textAlign: "center", fontSize: 15 }} onPress={() => navigation.navigate("ForgotPassword")}>
+            <Text style={{ textAlign: "center", fontSize: 15 }} onPress={() => router.push("forgot")}>
              forgot password?
             </Text>
           </View>

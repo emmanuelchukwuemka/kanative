@@ -12,17 +12,32 @@ const Rootlayout = () => {
         options={{
           headerTitle: "",
           headerStyle: { backgroundColor: "#132812" },
-          headerShown:false
+          headerShown: false,
         }}
       />
-       <Stack.Screen
-              name="login"
-              options={{
-                headerTitle: "",
-                headerStyle: { backgroundColor: "#132812" },
-                headerShown:false
-              }}
-            />
+      <Stack.Screen
+        name="login"
+        options={{
+          headerTitle: "",
+          headerStyle: { backgroundColor: "#132812" },
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="forgot"
+        options={{
+          headerTitle: "",
+          headerStyle: { backgroundColor: "#132812" },
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="dashboard"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }
