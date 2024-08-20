@@ -15,33 +15,38 @@ const CreatePost = () => {
 
 
 
- const handleOpenCamera = () => {
-   ImagePicker.requestCameraPermissionsAsync()
-     .then((permissionResult) => {
-       if (!permissionResult.granted) {
-         alert("Permission to access camera is required!");
-         return Promise.reject("Camera permission not granted");
-       }
+const handleOpenCamera = (mediaType) => {
+  ImagePicker.requestCameraPermissionsAsync()
+    .then((permissionResult) => {
+      if (!permissionResult.granted) {
+        alert("Permission to access camera is required!");
+        return Promise.reject("Camera permission not granted");
+      }
 
-       return ImagePicker.launchCameraAsync({
-         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-         quality: 1,
-         cameraType: ImagePicker.CameraType.front, 
-       });
-     })
-     .then((result) => {
-       if (!result.cancelled) {
-         const source = { uri: result.uri };
-         console.log("Camera response:", source);
-         // Handle the selected image here
-       }
-     })
-     .catch((error) => {
-       if (error !== "Camera permission not granted") {
-         console.error("Error opening camera:", error);
-       }
-     });
- };
+      return ImagePicker.launchCameraAsync({
+        mediaTypes: mediaType,
+        quality: 1,
+        cameraType: ImagePicker.CameraType.front, // Use front camera
+      });
+    })
+    .then((result) => {
+      if (!result.cancelled) {
+        const source = { uri: result.uri };
+        if (source.uri) {
+          console.log("Camera response:", source);
+          // Handle the selected image or video here
+        } else {
+          console.error("Failed to capture media, uri is undefined");
+        }
+      }
+    })
+    .catch((error) => {
+      if (error !== "Camera permission not granted") {
+        console.error("Error opening camera:", error);
+      }
+    });
+};
+
 
 
   return (
