@@ -15,32 +15,34 @@ const CreatePost = () => {
 
 
 
-  const handleOpenCamera = () => {
-    ImagePicker.requestCameraPermissionsAsync()
-      .then((permissionResult) => {
-        if (!permissionResult.granted) {
-          alert("Permission to access camera is required!");
-          return Promise.reject("Camera permission not granted");
-        }
+ const handleOpenCamera = () => {
+   ImagePicker.requestCameraPermissionsAsync()
+     .then((permissionResult) => {
+       if (!permissionResult.granted) {
+         alert("Permission to access camera is required!");
+         return Promise.reject("Camera permission not granted");
+       }
 
-        return ImagePicker.launchCameraAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          quality: 1,
-        });
-      })
-      .then((result) => {
-        if (!result.cancelled) {
-          const source = { uri: result.uri };
-          console.log("Camera response:", source);
-          // Handle the selected image here
-        }
-      })
-      .catch((error) => {
-        if (error !== "Camera permission not granted") {
-          console.error("Error opening camera:", error);
-        }
-      });
-  };
+       return ImagePicker.launchCameraAsync({
+         mediaTypes: ImagePicker.MediaTypeOptions.Images,
+         quality: 1,
+         cameraType: ImagePicker.CameraType.front, 
+       });
+     })
+     .then((result) => {
+       if (!result.cancelled) {
+         const source = { uri: result.uri };
+         console.log("Camera response:", source);
+         // Handle the selected image here
+       }
+     })
+     .catch((error) => {
+       if (error !== "Camera permission not granted") {
+         console.error("Error opening camera:", error);
+       }
+     });
+ };
+
 
   return (
     <SafeAreaView style={styles.container}>
