@@ -18,7 +18,7 @@ useEffect(() => {
 
 return (
   <View style={styles.container}>
-    {isSplash ? <ActivityIndicator color={"green"} /> : <Dashboard />}
+    {isSplash ? <ActivityIndicator color={"green"} size={50} style={styles.load} /> : <Dashboard />}
   </View>
 );
 }
@@ -28,5 +28,10 @@ export default dashboard
 const styles = StyleSheet.create({
   container:{
     flex:1,
+  },
+  load:{
+      justifyContent:"center",
+      alignItems:"center",
+      flex:1,
   }
 })
