@@ -9,15 +9,19 @@ import {
   RefreshControl,
   Image,
   View,
-  TextInput, // Import TextInput
+  TextInput,
+  Modal,
+  TouchableOpacity,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Icon from "react-native-vector-icons/Ionicons"; // Import the icon library
+import Icon from "react-native-vector-icons/Ionicons";
 
 const Dashboard = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [userName, setUserName] = useState("");
-  const [searchQuery, setSearchQuery] = useState(""); // State for search query
+  const [searchQuery, setSearchQuery] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
     fetchUserData();
@@ -43,6 +47,35 @@ const Dashboard = () => {
     }, 2000);
   }, []);
 
+  const handleImagePress = (image) => {
+    setSelectedImage(image);
+    setModalVisible(true);
+  };
+
+const renderImageModal = () => (
+  <Modal
+    transparent={true}
+    visible={modalVisible}
+    onRequestClose={() => setModalVisible(false)}
+  >
+    <View style={styles.modalContainer}>
+      <TouchableOpacity
+        style={styles.modalCloseButton}
+        onPress={() => setModalVisible(false)}
+      >
+        <Icon name="close-circle" size={30} color="#fff" />
+      </TouchableOpacity>
+      {selectedImage && (
+        <Image
+          source={selectedImage}
+          style={styles.modalImage}
+          resizeMode="contain"
+        />
+      )}
+    </View>
+  </Modal>
+);
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar
@@ -51,7 +84,6 @@ const Dashboard = () => {
         backgroundColor={"#132812"}
       />
 
-      {/* Fixed Search Bar */}
       <View style={styles.searchContainer}>
         <Icon name="search-outline" size={24} color="#666" />
         <TextInput
@@ -70,12 +102,17 @@ const Dashboard = () => {
         }
       >
         <View style={styles.postCard}>
-          <View style={styles.postContainer}>
-            <Image
-              source={require("../../assets/post.jpeg")}
-              style={styles.post}
-            />
-          </View>
+          <TouchableOpacity
+            onPress={() => handleImagePress(require("../../assets/post.jpeg"))}
+          >
+            <View style={styles.postContainer}>
+              <Image
+                source={require("../../assets/post.jpeg")}
+                style={styles.post}
+                resizeMode="cover"
+              />
+            </View>
+          </TouchableOpacity>
           <View style={styles.infoContainer}>
             <View style={styles.viewContainer}>
               <Image
@@ -105,7 +142,6 @@ const Dashboard = () => {
               </View>
             </View>
           </View>
-          {/* Icons Row */}
           <View style={styles.iconsContainer}>
             <Icon name="heart-outline" size={24} color="#000" />
             <Icon name="chatbubble-outline" size={24} color="#000" />
@@ -114,12 +150,17 @@ const Dashboard = () => {
         </View>
 
         <View style={styles.postCard}>
-          <View style={styles.postContainer}>
-            <Image
-              source={require("../../assets/post.jpeg")}
-              style={styles.post}
-            />
-          </View>
+          <TouchableOpacity
+            onPress={() => handleImagePress(require("../../assets/phone.png"))}
+          >
+            <View style={styles.postContainer}>
+              <Image
+                source={require("../../assets/phone.png")}
+                style={styles.post}
+                resizeMode="cover"
+              />
+            </View>
+          </TouchableOpacity>
           <View style={styles.infoContainer}>
             <View style={styles.viewContainer}>
               <Image
@@ -149,7 +190,6 @@ const Dashboard = () => {
               </View>
             </View>
           </View>
-          {/* Icons Row */}
           <View style={styles.iconsContainer}>
             <Icon name="heart-outline" size={24} color="#000" />
             <Icon name="chatbubble-outline" size={24} color="#000" />
@@ -157,6 +197,8 @@ const Dashboard = () => {
           </View>
         </View>
       </ScrollView>
+
+      {renderImageModal()}
     </SafeAreaView>
   );
 };
@@ -175,7 +217,6 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     paddingHorizontal: 10,
     paddingVertical: 10,
-
   },
   searchInput: {
     flex: 1,
@@ -189,7 +230,6 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flexGrow: 1,
-    
   },
   postCard: {
     backgroundColor: "#fff",
@@ -201,14 +241,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 5,
+    flex: 1,
   },
   postContainer: {
     width: "100%",
-    height: 500,
+    backgroundColor: "#fff",
+    flex: 1,
   },
   post: {
     width: "100%",
-    height: "100%",
+    height: undefined,
+    aspectRatio: 1,
   },
   infoContainer: {
     paddingHorizontal: 10,
@@ -252,5 +295,21 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingTop: 10,
     paddingBottom: 20,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
+  },
+  modalCloseButton: {
+    position: "absolute",
+    top: 20,
+    right: 20,
+    zIndex:99,
+  },
+  modalImage: {
+    width: "100%",
+    height: "100%",
   },
 });
