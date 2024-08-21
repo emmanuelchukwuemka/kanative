@@ -4,9 +4,7 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a62bc644-1e5c-4444-b52d-f7f491af4b5c" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/Components/Create/CreatePost.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/Components/Create/CreatePost.jsx" afterDir="false" />
-    </list>
+    <list default="true" id="a62bc644-1e5c-4444-b52d-f7f491af4b5c" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
