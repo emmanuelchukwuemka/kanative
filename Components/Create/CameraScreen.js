@@ -12,15 +12,14 @@ import { Camera, CameraType } from "expo-camera/legacy";
 import * as Audio from "expo-av";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as ImagePicker from "expo-image-picker";
-import axios from "axios";
 
 export default function CameraScreen({ navigation }) {
   const [hasPermission, setHasPermission] = useState(null);
+  const [cameraType, setCameraType] = useState(CameraType.back);
   const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [progress, setProgress] = useState(0);
   const cameraRef = useRef(null);
-
-  const screenWidth = Dimensions.get("window").width;
-  const screenHeight = Dimensions.get("window").height;
 
   useEffect(() => {
     (async () => {
@@ -43,12 +42,31 @@ export default function CameraScreen({ navigation }) {
     })();
   }, []);
 
+  useEffect(() => {
+    let interval;
+    if (isRecording) {
+      interval = setInterval(() => {
+        setRecordingTime((prevTime) => prevTime + 1);
+        setProgress((prevProgress) => Math.min(prevProgress + 0.05, 1));
+      }, 1000);
+    } else if (!isRecording && recordingTime !== 0) {
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [isRecording]);
+
   if (hasPermission === null) {
     return <View />;
   }
   if (hasPermission === false) {
     return <Text>No access to camera</Text>;
   }
+
+  const toggleCameraType = () => {
+    setCameraType((prevCameraType) =>
+      prevCameraType === CameraType.back ? CameraType.front : CameraType.back
+    );
+  };
 
   const takePicture = () => {
     if (cameraRef.current) {
@@ -65,6 +83,9 @@ export default function CameraScreen({ navigation }) {
   };
 
   const startRecording = () => {
+    setIsRecording(true);
+    setRecordingTime(0);
+    setProgress(0);
     if (cameraRef.current) {
       cameraRef.current
         .recordAsync({ quality: "1080p" })
@@ -131,23 +152,40 @@ export default function CameraScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Camera style={styles.camera} type={CameraType.back} ref={cameraRef}>
+      <Camera style={styles.camera} type={cameraType} ref={cameraRef}>
         <View style={styles.overlay}>
+          {isRecording && (
+            <View style={styles.timerContainer}>
+              <Text style={styles.recordingText}>{recordingTime}s</Text>
+            </View>
+          )}
           <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.iconButtonSmall}
+              onPress={toggleCameraType}
+            >
+              <Ionicons name="camera-reverse" size={30} color="white" />
+            </TouchableOpacity>
+            <View style={styles.captureWrapper}>
+              <TouchableOpacity
+                style={[
+                  styles.captureButton,
+                  {
+                    borderColor: "white",
+                    borderWidth: isRecording ? progress * 10 : 5,
+                  },
+                ]}
+                onPressIn={startRecording}
+                onPressOut={stopRecording}
+              >
+                <Ionicons name="camera" size={30} color="white" />
+              </TouchableOpacity>
+            </View>
             <TouchableOpacity
               style={styles.iconButtonSmall}
               onPress={pickImageFromGallery}
             >
-              <Ionicons name="images" size={30} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.captureButton}
-              onPressIn={() => setIsRecording(true)}
-              onPressOut={stopRecording}
-              onLongPress={startRecording}
-              onPress={takePicture}
-            >
-              <Ionicons name="camera" size={40} color="white" />
+              <Ionicons name="image" size={30} color="white" />
             </TouchableOpacity>
           </View>
         </View>
@@ -162,7 +200,7 @@ const styles = StyleSheet.create({
     backgroundColor: "black",
   },
   camera: {
-    flex: 1,
+    // flex: 1,
     width: "100%",
     height: "100%",
   },
@@ -174,17 +212,35 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: "row",
-    justifyContent: "space-around",
+    justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 50,
   },
   iconButtonSmall: {
     alignItems: "center",
   },
+  captureWrapper: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
   captureButton: {
     alignItems: "center",
     borderRadius: 50,
-    backgroundColor: "red",
+    backgroundColor: "green",
     padding: 15,
+  },
+  timerContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "red",
+    padding: 10,
+    alignItems: "center",
+  },
+  recordingText: {
+    color: "white",
+    fontSize: 20,
+    fontWeight: "bold",
   },
 });
