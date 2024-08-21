@@ -2,7 +2,7 @@
   "expo": {
     "name": "kap-app",
     "slug": "kap-app",
-     "scheme": "kap-scheme",
+    "scheme": "kap-scheme",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -25,7 +25,8 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "react-native-vision-camera"
     ]
   }
 }

@@ -1,11 +1,11 @@
 import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
-import CreatePost from '../../Components/Create/CreatePost'
+import React from 'react';
+import CameraScreen from '../../Components/Create/CameraScreen'
 
 const create = () => {
   return (
     <View style={styles.container}>
-      <CreatePost/>
+      <CameraScreen/>
     </View>
   )
 }

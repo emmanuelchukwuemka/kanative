@@ -1,16 +1,37 @@
 import { StyleSheet } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Tabs } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { TouchableOpacity, View } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import CameraScreen from '../../Components/Create/CameraScreen'; 
 
 const TabLayout = () => {
+  const [userName, setUserName] = useState("");
+
+  const fetchUserData = async () => {
+    try {
+      const user = await AsyncStorage.getItem("user");
+      if (user) {
+        const parsedUser = JSON.parse(user);
+        setUserName(parsedUser.userName || "User"); // Default to "User" if userName is not present
+      }
+    } catch (error) {
+      console.log("Error fetching user data: ", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+  
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: "green",
         tabBarInactiveTintColor: "gray",
         tabBarStyle: {
-          paddingTop: 10, // Add padding top here
+          paddingTop: 10,
         },
       }}
     >
@@ -30,6 +51,7 @@ const TabLayout = () => {
       />
       <Tabs.Screen
         name="create"
+      
         options={{
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
@@ -39,6 +61,7 @@ const TabLayout = () => {
             />
           ),
           tabBarLabel: "",
+          headerShown: false,
         }}
       />
       <Tabs.Screen
@@ -51,7 +74,28 @@ const TabLayout = () => {
               size={size}
             />
           ),
+          title: userName, // Pass userName directly as the title
           tabBarLabel: "",
+          headerRight: () => (
+            <View style={styles.headerIconsContainer}>
+              <TouchableOpacity onPress={() => console.log("Notifications")}>
+                <Ionicons
+                  name="notifications-outline"
+                  size={24}
+                  color="black"
+                  style={styles.icon}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => console.log("Settings")}>
+                <Ionicons
+                  name="settings-outline"
+                  size={24}
+                  color="black"
+                  style={styles.icon}
+                />
+              </TouchableOpacity>
+            </View>
+          ),
         }}
       />
     </Tabs>
@@ -60,4 +104,12 @@ const TabLayout = () => {
 
 export default TabLayout;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  headerIconsContainer: {
+    flexDirection: "row",
+    marginRight: 10,
+  },
+  icon: {
+    marginLeft: 15,
+  },
+});
