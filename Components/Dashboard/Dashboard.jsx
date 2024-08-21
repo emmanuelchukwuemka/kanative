@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 14,
     color: "#666",
-    width: 300,
+    width: 250,
     marginTop: 5,
     textAlign: "justify",
   },

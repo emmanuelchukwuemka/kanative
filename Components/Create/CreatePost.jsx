@@ -1,81 +1,68 @@
-import React, { useEffect, useState } from "react";
-import {
-  SafeAreaView,
-  ScrollView,
-  RefreshControl,
-  View,
-  Text,
-  Button,
-  StyleSheet,
-} from "react-native";
-import * as ImagePicker from "expo-image-picker";
+import React, { useState, useEffect } from 'react';
+import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
+import { Camera } from 'expo-camera';
 
-const CreatePost = () => {
-  const [refreshing, setRefreshing] = useState(false);
+export default function App() {
+  const [hasPermission, setHasPermission] = useState(null);
+  const [cameraRef, setCameraRef] = useState(null);
+  const [type, setType] = useState(Camera.Constants.Type.front);
 
+  useEffect(() => {
+    (async () => {
+      const { status } = await Camera.requestPermissionsAsync();
+      setHasPermission(status === 'granted');
+    })();
+  }, []);
 
+  if (hasPermission === null) {
+    return <View />;
+  }
+  if (hasPermission === false) {
+    return <Text>No access to camera</Text>;
+  }
 
-const handleOpenCamera = (mediaType) => {
-  ImagePicker.requestCameraPermissionsAsync()
-    .then((permissionResult) => {
-      if (!permissionResult.granted) {
-        alert("Permission to access camera is required!");
-        return Promise.reject("Camera permission not granted");
+  const takePicture = async () => {
+    if (cameraRef) {
+      try {
+        const photo = await cameraRef.takePictureAsync();
+        console.log(photo.uri);
+      } catch (error) {
+        console.error("Error taking picture:", error);
       }
-
-      return ImagePicker.launchCameraAsync({
-        mediaTypes: mediaType,
-        quality: 1,
-        cameraType: ImagePicker.CameraType.front, // Use front camera
-      });
-    })
-    .then((result) => {
-      if (!result.cancelled) {
-        const source = { uri: result.uri };
-        if (source.uri) {
-          console.log("Camera response:", source);
-          // Handle the selected image or video here
-        } else {
-          console.error("Failed to capture media, uri is undefined");
-        }
-      }
-    })
-    .catch((error) => {
-      if (error !== "Camera permission not granted") {
-        console.error("Error opening camera:", error);
-      }
-    });
-};
-
-
+    }
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => {}} />
-        }
-      >
-        <View>
-          <Text>Open Camera</Text>
-          <Button title="Open Camera" onPress={handleOpenCamera} />
+    <View style={{ flex: 1 }}>
+      <Camera style={{ flex: 1 }} type={type} ref={(ref) => setCameraRef(ref)}>
+        <View style={styles.cameraContainer}>
+          <TouchableOpacity
+            style={styles.snapButton}
+            onPress={takePicture}
+          >
+            <Text style={styles.snapText}> Snap </Text>
+          </TouchableOpacity>
         </View>
-      </ScrollView>
-    </SafeAreaView>
+      </Camera>
+    </View>
   );
-};
-
-export default CreatePost;
+}
 
 const styles = StyleSheet.create({
-  container: {
+  cameraContainer: {
     flex: 1,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: 'transparent',
+    flexDirection: 'row',
   },
-  scrollView: {
-    flexGrow: 1,
-    justifyContent: "center",
-    alignItems: "center",
+  snapButton: {
+    flex: 0.1,
+    alignSelf: 'flex-end',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  snapText: {
+    fontSize: 18,
+    color: 'white',
   },
 });
+  

@@ -19,7 +19,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const UserLogin = () => {
   const [showPassword, setShowPassword] = useState(false); 
 
-  const loginUrl = "http://192.168.10.142:8000/user/login";
+  const loginUrl = "http://192.168.16.48:8000/user/login";
 
   const validationSchema = Yup.object().shape({
     phone: Yup.string().required("Phone number is required"),
