@@ -150,13 +150,13 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   profilePic: {
-    width: 50,
-    height: 50,
+    width: 40,
+    height: 40,
     borderRadius: 25,
     marginRight: 10,
   },
   userNameText: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: "bold",
     color: "#fff",
   },
@@ -167,8 +167,9 @@ const styles = StyleSheet.create({
   },
   reactionsContainer: {
     flexDirection: "row",
-    justifyContent: "space-around",
-    marginBottom: 10,
+    justifyContent: "space-between",
+    marginBottom: 20,
+    paddingHorizontal:10,
     width: "100%",
   },
   watermark: {
