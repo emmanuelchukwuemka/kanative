@@ -82,10 +82,10 @@ const renderPost = ({ item }) => (
           </View>
           <Text style={styles.captionText}>{item.caption}</Text>
           <View style={styles.reactionsContainer}>
-            <Icon name="eye-outline" size={30} color="#fff" />
-            <Icon name="heart-outline" size={30} color="#fff" />
-            <Icon name="chatbubble-outline" size={30} color="#fff" />
-            <Icon name="share-outline" size={30} color="#fff" />
+            <Icon name="eye-outline" size={27} color="#fff" />
+            <Icon name="heart-outline" size={27} color="#fff" />
+            <Icon name="chatbubble-outline" size={27} color="#fff" />
+            <Icon name="share-outline" size={27} color="#fff" />
           </View>
         </View>
       </View>
