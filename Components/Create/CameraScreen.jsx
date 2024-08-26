@@ -12,6 +12,7 @@ import { Camera, CameraType, FlashMode } from "expo-camera/legacy";
 import * as Audio from "expo-av";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as ImagePicker from "expo-image-picker";
+import axios from "axios";
 
 export default function CameraScreen({ navigation }) {
   const [hasPermission, setHasPermission] = useState(null);
@@ -22,6 +23,8 @@ export default function CameraScreen({ navigation }) {
   const [progress, setProgress] = useState(0);
   const [capturedImage, setCapturedImage] = useState(null); // State for captured image
   const cameraRef = useRef(null);
+  const [isCameraReady, setIsCameraReady] = useState(false);
+
 
   useEffect(() => {
     (async () => {
@@ -98,22 +101,29 @@ export default function CameraScreen({ navigation }) {
     }
   };
 
-  const startRecording = () => {
-    setIsRecording(true);
-    setRecordingTime(0);
-    setProgress(0);
-    if (cameraRef.current) {
-      cameraRef.current
-        .recordAsync({ quality: "1080p" })
-        .then((video) => {
-          console.log(video.uri);
-          uploadMedia(video.uri, "video.mp4", "video/mp4");
-        })
-        .catch((error) => {
-          console.error("Error recording video: ", error);
-        });
-    }
-  };
+const startRecording = () => {
+  if (!isCameraReady) {
+    Alert.alert("Camera is not ready yet. Please wait a moment.");
+    return;
+  }
+
+  setIsRecording(true);
+  setRecordingTime(0);
+  setProgress(0);
+
+  if (cameraRef.current) {
+    cameraRef.current
+      .recordAsync({ quality: "1080p" })
+      .then((video) => {
+        console.log(video.uri);
+        uploadMedia(video.uri, "video.mp4", "video/mp4");
+      })
+      .catch((error) => {
+        console.error("Error recording video: ", error);
+      });
+  }
+};
+
 
   const stopRecording = () => {
     if (cameraRef.current && isRecording) {
@@ -130,20 +140,20 @@ export default function CameraScreen({ navigation }) {
       type: type,
     });
 
-    // axios.post('https://your-backend-api.com/upload', formData, {
-    //   headers: {
-    //     'Content-Type': 'multipart/form-data',
-    //   },
-    // })
-    // .then(response => {
-    //   console.log('Media uploaded successfully:', response.data);
-    //   Alert.alert('Upload Success', 'Your media has been uploaded to the feed!');
-    //   navigation.navigate('NewFeedPage');
-    // })
-    // .catch(error => {
-    //   console.error('Error uploading media:', error);
-    //   Alert.alert('Upload Failed', 'There was an error uploading your media. Please try again.');
-    // });
+    axios.post('https://192.168.10.142/user/saveMedia', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+    .then(response => {
+      console.log('Media uploaded successfully:', response.data);
+      Alert.alert('Upload Success', 'Your media has been uploaded to the feed!');
+      router.replace('dashboard');
+    })
+    .catch(error => {
+      console.error('Error uploading media:', error);
+      Alert.alert('Upload Failed', 'There was an error uploading your media. Please try again.');
+    });
   };
 
   const pickImageFromGallery = () => {
@@ -190,6 +200,10 @@ export default function CameraScreen({ navigation }) {
     );
   }
 
+  const handleCameraReady = () => {
+    setIsCameraReady(true);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <Camera
@@ -197,6 +211,7 @@ export default function CameraScreen({ navigation }) {
         type={cameraType}
         flashMode={flashMode} // Set flash mode
         ref={cameraRef}
+        onCameraReady={handleCameraReady} 
       >
         <View style={styles.overlay}>
           <View style={styles.flashLightContainer}>
