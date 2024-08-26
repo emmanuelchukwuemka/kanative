@@ -5,10 +5,10 @@ import {
   StyleSheet,
   Text,
   SafeAreaView,
-  Dimensions,
+  Image,
   Alert,
 } from "react-native";
-import { Camera, CameraType } from "expo-camera/legacy";
+import { Camera, CameraType, FlashMode } from "expo-camera/legacy";
 import * as Audio from "expo-av";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as ImagePicker from "expo-image-picker";
@@ -16,9 +16,11 @@ import * as ImagePicker from "expo-image-picker";
 export default function CameraScreen({ navigation }) {
   const [hasPermission, setHasPermission] = useState(null);
   const [cameraType, setCameraType] = useState(CameraType.back);
+  const [flashMode, setFlashMode] = useState(FlashMode.off); // Flash mode state
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [capturedImage, setCapturedImage] = useState(null); // State for captured image
   const cameraRef = useRef(null);
 
   useEffect(() => {
@@ -68,17 +70,31 @@ export default function CameraScreen({ navigation }) {
     );
   };
 
-  const takePicture = () => {
+  const toggleFlashMode = () => {
+    setFlashMode((prevFlashMode) =>
+      prevFlashMode === FlashMode.off
+        ? FlashMode.on
+        : prevFlashMode === FlashMode.on
+        ? FlashMode.auto
+        : FlashMode.off
+    );
+  };
+
+  const takePicture = async () => {
     if (cameraRef.current) {
-      cameraRef.current
-        .takePictureAsync({ quality: 1, base64: true })
-        .then((photo) => {
-          console.log(photo.uri);
-          uploadMedia(photo.uri, "photo.jpg", "image/jpeg");
-        })
-        .catch((error) => {
-          console.error("Error taking picture: ", error);
-        });
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 1,
+        base64: true,
+      });
+      setCapturedImage(photo.uri);
+    }
+  };
+
+  const confirmImage = () => {
+    if (capturedImage) {
+      console.log(capturedImage);
+      uploadMedia(capturedImage, "photo.jpg", "image/jpeg");
+      setCapturedImage(null);
     }
   };
 
@@ -150,10 +166,58 @@ export default function CameraScreen({ navigation }) {
       });
   };
 
+  if (capturedImage) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Image source={{ uri: capturedImage }} style={styles.camera} />
+        <View style={styles.overlay}>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.iconButtonSmall}
+              onPress={() => setCapturedImage(null)}
+            >
+              <Ionicons name="close" size={30} color="white" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.iconButtonSmall}
+              onPress={confirmImage}
+            >
+              <Ionicons name="checkmark" size={30} color="white" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
-      <Camera style={styles.camera} type={cameraType} ref={cameraRef}>
+      <Camera
+        style={styles.camera}
+        type={cameraType}
+        flashMode={flashMode} // Set flash mode
+        ref={cameraRef}
+      >
         <View style={styles.overlay}>
+          <View style={styles.flashLightContainer}>
+            <TouchableOpacity onPress={toggleFlashMode}>
+              <Ionicons
+                name={
+                  flashMode === FlashMode.off
+                    ? "flash-off"
+                    : flashMode === FlashMode.on
+                    ? "flash"
+                    : "flash-auto"
+                }
+                size={30}
+                color="white"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity>
+              <Ionicons name="bulb" size={30} color="white" />
+            </TouchableOpacity>
+          </View>
+
           {isRecording && (
             <View style={styles.timerContainer}>
               <Text style={styles.recordingText}>{recordingTime}s</Text>
@@ -175,6 +239,7 @@ export default function CameraScreen({ navigation }) {
                     borderWidth: isRecording ? progress * 10 : 5,
                   },
                 ]}
+                onPress={takePicture}
                 onPressIn={startRecording}
                 onPressOut={stopRecording}
               >
@@ -200,7 +265,6 @@ const styles = StyleSheet.create({
     backgroundColor: "black",
   },
   camera: {
-    // flex: 1,
     width: "100%",
     height: "100%",
   },
@@ -209,6 +273,15 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.4)",
     justifyContent: "flex-end",
     paddingBottom: 20,
+  },
+  flashLightContainer: {
+    position: "absolute",
+    top: 100,
+    right: -25,
+    flexDirection: "column",
+    justifyContent: "space-between",
+    gap:20,
+    width: 80, // Adjust the width based on the spacing you need
   },
   buttonContainer: {
     flexDirection: "row",
@@ -244,3 +317,4 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
+
