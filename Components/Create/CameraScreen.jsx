@@ -7,24 +7,29 @@ import {
   SafeAreaView,
   Image,
   Alert,
+  Platform,
+  StatusBar,
 } from "react-native";
 import { Camera, CameraType, FlashMode } from "expo-camera/legacy";
 import * as Audio from "expo-av";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
+import { Video } from "expo-av";
+
 
 export default function CameraScreen({ navigation }) {
   const [hasPermission, setHasPermission] = useState(null);
   const [cameraType, setCameraType] = useState(CameraType.back);
-  const [flashMode, setFlashMode] = useState(FlashMode.off); // Flash mode state
+  const [flashMode, setFlashMode] = useState(FlashMode.off);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [progress, setProgress] = useState(0);
-  const [capturedImage, setCapturedImage] = useState(null); // State for captured image
+  const [capturedMedia, setCapturedMedia] = useState(null);
+  const [mediaType, setMediaType] = useState(null);
   const cameraRef = useRef(null);
   const [isCameraReady, setIsCameraReady] = useState(false);
-
+  const recordingTimeout = useRef(null);
 
   useEffect(() => {
     (async () => {
@@ -75,11 +80,7 @@ export default function CameraScreen({ navigation }) {
 
   const toggleFlashMode = () => {
     setFlashMode((prevFlashMode) =>
-      prevFlashMode === FlashMode.off
-        ? FlashMode.on
-        : prevFlashMode === FlashMode.on
-        ? FlashMode.auto
-        : FlashMode.off
+      prevFlashMode === FlashMode.off ? FlashMode.on : FlashMode.off
     );
   };
 
@@ -89,46 +90,66 @@ export default function CameraScreen({ navigation }) {
         quality: 1,
         base64: true,
       });
-      setCapturedImage(photo.uri);
+      setCapturedMedia(photo.uri);
+      setMediaType("image");
     }
   };
 
-  const confirmImage = () => {
-    if (capturedImage) {
-      console.log(capturedImage);
-      uploadMedia(capturedImage, "photo.jpg", "image/jpeg");
-      setCapturedImage(null);
+  const confirmMedia = () => {
+    if (capturedMedia) {
+      console.log(capturedMedia);
+      const type = mediaType === "image" ? "image/jpeg" : "video/mp4";
+      const name = mediaType === "image" ? "photo.jpg" : "video.mp4";
+      uploadMedia(capturedMedia, name, type);
+      setCapturedMedia(null);
+      setMediaType(null);
     }
   };
 
-const startRecording = () => {
-  if (!isCameraReady) {
-    Alert.alert("Camera is not ready yet. Please wait a moment.");
-    return;
-  }
+  const startRecording = () => {
+    if (!isCameraReady) {
+      Alert.alert("Camera is not ready yet. Please wait a moment.");
+      return;
+    }
 
-  setIsRecording(true);
-  setRecordingTime(0);
-  setProgress(0);
+    setIsRecording(true);
+    setRecordingTime(0);
+    setProgress(0);
 
-  if (cameraRef.current) {
-    cameraRef.current
-      .recordAsync({ quality: "1080p" })
-      .then((video) => {
-        console.log(video.uri);
-        uploadMedia(video.uri, "video.mp4", "video/mp4");
-      })
-      .catch((error) => {
-        console.error("Error recording video: ", error);
-      });
-  }
-};
-
+    if (cameraRef.current) {
+      cameraRef.current
+        .recordAsync({ quality: "1080p" })
+        .then((video) => {
+          setCapturedMedia(video.uri);
+          setMediaType("video");
+        })
+        .catch((error) => {
+          console.error("Error recording video: ", error);
+        });
+    }
+  };
 
   const stopRecording = () => {
     if (cameraRef.current && isRecording) {
       cameraRef.current.stopRecording();
       setIsRecording(false);
+    }
+  };
+
+  const handleCapturePressIn = () => {
+    recordingTimeout.current = setTimeout(() => {
+      startRecording();
+    }, 1500);
+  };
+
+  const handleCapturePressOut = () => {
+    if (recordingTimeout.current) {
+      clearTimeout(recordingTimeout.current);
+      if (!isRecording) {
+        takePicture(); // Take picture if the button is released before 2 seconds
+      } else {
+        stopRecording(); // Stop recording if already started
+      }
     }
   };
 
@@ -140,20 +161,29 @@ const startRecording = () => {
       type: type,
     });
 
-    axios.post('https://192.168.10.142/user/saveMedia', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    })
-    .then(response => {
-      console.log('Media uploaded successfully:', response.data);
-      Alert.alert('Upload Success', 'Your media has been uploaded to the feed!');
-      router.replace('dashboard');
-    })
-    .catch(error => {
-      console.error('Error uploading media:', error);
-      Alert.alert('Upload Failed', 'There was an error uploading your media. Please try again.');
-    });
+    console.log(formData);
+
+    axios
+      .post("http://192.168.0.103/user/saveMedia", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then((response) => {
+        console.log("Media uploaded successfully:", response.data);
+        Alert.alert(
+          "Upload Success",
+          "Your media has been uploaded to the feed!"
+        );
+        navigation.replace("dashboard");
+      })
+      .catch((error) => {
+        console.error("Error uploading media:", error);
+        Alert.alert(
+          "Upload Failed",
+          "There was an error uploading your media. Please try again."
+        );
+      });
   };
 
   const pickImageFromGallery = () => {
@@ -165,10 +195,9 @@ const startRecording = () => {
       .then((result) => {
         if (!result.canceled) {
           const { uri, type } = result.assets[0];
-          const mediaType = type === "video" ? "video/mp4" : "image/jpeg";
-          const mediaName = type === "video" ? "video.mp4" : "photo.jpg";
-          console.log(uri);
-          uploadMedia(uri, mediaName, mediaType);
+          setCapturedMedia(uri);
+          const selectedType = type === "video" ? "video" : "image";
+          setMediaType(selectedType);
         }
       })
       .catch((error) => {
@@ -176,23 +205,39 @@ const startRecording = () => {
       });
   };
 
-  if (capturedImage) {
+  if (capturedMedia) {
     return (
       <SafeAreaView style={styles.container}>
-        <Image source={{ uri: capturedImage }} style={styles.camera} />
+        {mediaType === "image" ? (
+          <Image source={{ uri: capturedMedia }} style={styles.camera} />
+        ) : (
+          <Video
+            source={{ uri: capturedMedia }}
+            style={styles.camera}
+            resizeMode="cover"
+            shouldPlay
+            isLooping
+          />
+        )}
         <View style={styles.overlay}>
-          <View style={styles.buttonContainer}>
+          <View style={styles.buttonContainer1}>
             <TouchableOpacity
               style={styles.iconButtonSmall}
-              onPress={() => setCapturedImage(null)}
+              onPress={() => setCapturedMedia(null)}
             >
               <Ionicons name="close" size={30} color="white" />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.iconButtonSmall}
-              onPress={confirmImage}
+              onPress={confirmMedia}
             >
               <Ionicons name="checkmark" size={30} color="white" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity style={styles.iconButtonSmall1}>
+              <Ionicons name="bulb" size={30} style={{ color: "lightgreen" }} />
             </TouchableOpacity>
           </View>
         </View>
@@ -211,11 +256,14 @@ const startRecording = () => {
         type={cameraType}
         flashMode={flashMode} // Set flash mode
         ref={cameraRef}
-        onCameraReady={handleCameraReady} 
+        onCameraReady={handleCameraReady}
       >
         <View style={styles.overlay}>
           <View style={styles.flashLightContainer}>
-            <TouchableOpacity onPress={toggleFlashMode}>
+            <TouchableOpacity
+              onPress={toggleFlashMode}
+              style={styles.iconButtonSmall1}
+            >
               <Ionicons
                 name={
                   flashMode === FlashMode.off
@@ -227,9 +275,6 @@ const startRecording = () => {
                 size={30}
                 color="white"
               />
-            </TouchableOpacity>
-            <TouchableOpacity>
-              <Ionicons name="bulb" size={30} color="white" />
             </TouchableOpacity>
           </View>
 
@@ -254,9 +299,8 @@ const startRecording = () => {
                     borderWidth: isRecording ? progress * 10 : 5,
                   },
                 ]}
-                onPress={takePicture}
-                onPressIn={startRecording}
-                onPressOut={stopRecording}
+                onPressIn={handleCapturePressIn}
+                onPressOut={handleCapturePressOut}
               >
                 <Ionicons name="camera" size={30} color="white" />
               </TouchableOpacity>
@@ -265,7 +309,7 @@ const startRecording = () => {
               style={styles.iconButtonSmall}
               onPress={pickImageFromGallery}
             >
-              <Ionicons name="image" size={30} color="white" />
+              <Ionicons name="images" size={30} color="white" />
             </TouchableOpacity>
           </View>
         </View>
@@ -277,59 +321,85 @@ const startRecording = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "black",
   },
   camera: {
-    width: "100%",
-    height: "100%",
+    flex: 1,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
-    justifyContent: "flex-end",
-    paddingBottom: 20,
-  },
-  flashLightContainer: {
-    position: "absolute",
-    top: 100,
-    right: -25,
-    flexDirection: "column",
     justifyContent: "space-between",
-    gap:20,
-    width: 80, // Adjust the width based on the spacing you need
+    padding: 16,
   },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 50,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
-  iconButtonSmall: {
+
+  buttonContainer1: {
+    position: "absolute",
+    flexDirection: "row",
+    gap: 12,
+    bottom: 20,
+    left: 10,
+    justifyContent: "space-between",
+    width: "100%",
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+  },
+  captureButton: {
+    width: 70,
+    height: 70,
+    backgroundColor: "transparent",
+    borderRadius: 35,
+    borderColor: "white",
+    borderWidth: 5,
+    justifyContent: "center",
     alignItems: "center",
   },
   captureWrapper: {
     alignItems: "center",
     justifyContent: "center",
+    flex: 1,
   },
-  captureButton: {
+  iconButtonSmall: {
+    width: 50,
+    height: 50,
+    justifyContent: "center",
     alignItems: "center",
-    borderRadius: 50,
-    backgroundColor: "green",
-    padding: 15,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    borderRadius: 25,
+  },
+
+  iconButtonSmall1: {
+    width: 50,
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    borderWidth: 4,
+    borderColor: "lightgreen",
+    borderRadius: 25,
   },
   timerContainer: {
     position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "red",
-    padding: 10,
-    alignItems: "center",
+    top: 46,
+    left: 16,
+    padding: 8,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    borderRadius: 4,
   },
   recordingText: {
     color: "white",
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "bold",
   },
+  flashLightContainer: {
+    flexDirection: "column",
+    justifyContent: "space-between",
+    gap: 20,
+    marginLeft: "auto",
+    padding: 10,
+    marginTop: 30,
+  },
 });
-
