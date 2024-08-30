@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/Ionicons";
+import { Video } from "expo-av";
 
 const { height: screenHeight } = Dimensions.get("window");
 
@@ -27,11 +28,12 @@ const Dashboard = () => {
     },
     {
       id: "2",
-      image: require("../../assets/post.jpeg"),
-      caption: "Second post",
+      video: require("../../assets/sample.mp4"), // Example video
+      caption: "this is a test values for my day to day activities so this is to test, now i will be going to sleep",
     },
     // Add more posts here
   ]);
+
 
   useEffect(() => {
     fetchUserData();
@@ -52,46 +54,54 @@ const Dashboard = () => {
 
 
 
-const renderPost = ({ item }) => (
-  <View style={styles.postCard}>
-    <View>
-      
-      {item.image ? (
-        <Image
-          source={item.image}
-          style={styles.postImage}
-          resizeMode="cover"
-        />
-      ) : (
-        <View style={styles.noImageContainer}>
-          <Image
-            source={require("../../assets/icon.png")} 
-            style={styles.appIcon}
-            resizeMode="contain"
+  const renderPost = ({ item }) => (
+    <View style={styles.postCard}>
+      <View>
+        {item.video ? (
+          <Video
+            source={item.video}
+            style={styles.postMedia}
+            useNativeControls
+            resizeMode="cover"
+            isLooping
           />
-        </View>
-      )}
-      <View style={styles.overlay}>
-        <View style={styles.bottomContainer}>
-          <View style={styles.userInfo}>
+        ) : item.image ? (
+          <Image
+            source={item.image}
+            style={styles.postMedia}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={styles.noMediaContainer}>
             <Image
-              source={require("../../assets/profile.jpeg")}
-              style={styles.profilePic}
+              source={require("../../assets/icon.png")} // Your app logo
+              style={styles.appIcon}
+              resizeMode="contain"
             />
-            <Text style={styles.userNameText}>{userName}</Text>
           </View>
-          <Text style={styles.captionText}>{item.caption}</Text>
-          <View style={styles.reactionsContainer}>
-            <Icon name="eye-outline" size={27} color="#fff" />
-            <Icon name="heart-outline" size={27} color="#fff" />
-            <Icon name="chatbubble-outline" size={27} color="#fff" />
-            <Icon name="share-outline" size={27} color="#fff" />
+        )}
+        <View style={styles.overlay}>
+          <View style={styles.bottomContainer}>
+            <View style={styles.userInfo}>
+              <Image
+                source={require("../../assets/profile.jpeg")}
+                style={styles.profilePic}
+              />
+              <Text style={styles.userNameText}>{userName}</Text>
+            </View>
+            <Text style={styles.captionText}>{item.caption}</Text>
+            <View style={styles.reactionsContainer}>
+              <Icon name="eye-outline" size={27} color="#fff" />
+              <Icon name="heart-outline" size={27} color="#fff" />
+              <Icon name="chatbubble-outline" size={27} color="#fff" />
+              <Icon name="share-outline" size={27} color="#fff" />
+            </View>
           </View>
         </View>
       </View>
     </View>
-  </View>
-);
+  );
+  
 
 
   return (

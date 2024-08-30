@@ -19,7 +19,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const UserLogin = () => {
   const [showPassword, setShowPassword] = useState(false); 
 
-  const loginUrl = "http://192.168.0.103:8000/user/login";
+  const loginUrl = "https://kap-backend.onrender.com/user/login";
 
   const validationSchema = Yup.object().shape({
     phone: Yup.string().required("Phone number is required"),
@@ -32,7 +32,7 @@ const UserLogin = () => {
       password: values.password,
     })
       .then(response => {
-        // console.log(response.data.user);
+        console.log(response.data.user);
         if (response.status == 200){
           let userInfo = JSON.stringify(response.data.user)
           
@@ -45,7 +45,7 @@ const UserLogin = () => {
           
 
         }
-        // AsyncStorage.setItem("userData", JSON.stringify(response.data.user))
+        AsyncStorage.setItem("userData", JSON.stringify(response.data.user))
       })
       .catch(error => {
         console.log(error);

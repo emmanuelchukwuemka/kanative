@@ -17,9 +17,9 @@ const UserProfile = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [userName, setUserName] = useState(""); 
   const [bio, setBio] = useState(''); // Empty bio
-  const [followers, setFollowers] = useState(0); // Default to 0 followers
+  const [followers, setFollowers] = useState(0); 
   const [media, setMedia] = useState([
-    // Sample media data
+  
     { id: '1', uri: 'https://placekitten.com/200/300' },
     { id: '2', uri: 'https://placekitten.com/300/200' },
   ]);
