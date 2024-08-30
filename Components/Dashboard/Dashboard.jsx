@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   SafeAreaView,
   StatusBar,
@@ -7,9 +7,9 @@ import {
   FlatList,
   Image,
   View,
-  Modal,
   TouchableOpacity,
   Dimensions,
+  RefreshControl,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/Ionicons";
@@ -19,8 +19,13 @@ const { height: screenHeight } = Dimensions.get("window");
 
 const Dashboard = () => {
   const [userName, setUserName] = useState("");
-  const [modalVisible, setModalVisible] = useState(false);
-  const [posts, setPosts] = useState([
+  const [visibleVideoIndex, setVisibleVideoIndex] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [showControls, setShowControls] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const videoRefs = useRef([]);
+
+  const posts = [
     {
       id: "1",
       image: require("../../assets/post.jpeg"),
@@ -28,12 +33,10 @@ const Dashboard = () => {
     },
     {
       id: "2",
-      video: require("../../assets/sample.mp4"), // Example video
-      caption: "this is a test values for my day to day activities so this is to test, now i will be going to sleep",
+      video: require("../../assets/sample.mp4"),
+      caption: "This is a test caption for my day-to-day activities.",
     },
-    // Add more posts here
-  ]);
-
+  ];
 
   useEffect(() => {
     fetchUserData();
@@ -52,65 +55,104 @@ const Dashboard = () => {
       });
   };
 
+  const onViewableItemsChanged = useRef(({ viewableItems }) => {
+    if (viewableItems.length > 0) {
+      const visibleItem = viewableItems[0];
+      if (visibleItem?.item?.video) {
+        setVisibleVideoIndex(visibleItem.index);
+        setIsPlaying(true);
+        videoRefs.current[visibleItem.index]?.playAsync();
+      } else {
+        setVisibleVideoIndex(null);
+        setIsPlaying(false);
+      }
+    }
+  });
 
+  const handlePlayPause = (index) => {
+    if (isPlaying) {
+      videoRefs.current[index]?.pauseAsync();
+    } else {
+      videoRefs.current[index]?.playAsync();
+    }
+    setIsPlaying(!isPlaying);
+  };
 
-  const renderPost = ({ item }) => (
+  const handleVideoPress = () => {
+    setShowControls(!showControls);
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    // Simulate fetching new data
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+  };
+
+  const renderPost = ({ item, index }) => (
     <View style={styles.postCard}>
-      <View>
-        {item.video ? (
+      {item.video ? (
+        <TouchableOpacity
+          style={styles.postMedia}
+          onPress={handleVideoPress}
+          activeOpacity={1}
+        >
           <Video
+            ref={(ref) => (videoRefs.current[index] = ref)}
             source={item.video}
             style={styles.postMedia}
-            useNativeControls
             resizeMode="cover"
             isLooping
+            shouldPlay={visibleVideoIndex === index && isPlaying}
+            volume={1.0}
+            isMuted={false}
+            useNativeControls={false}
           />
-        ) : item.image ? (
-          <Image
-            source={item.image}
-            style={styles.postMedia}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={styles.noMediaContainer}>
-            <Image
-              source={require("../../assets/icon.png")} // Your app logo
-              style={styles.appIcon}
-              resizeMode="contain"
-            />
-          </View>
-        )}
-        <View style={styles.overlay}>
-          <View style={styles.bottomContainer}>
-            <View style={styles.userInfo}>
-              <Image
-                source={require("../../assets/profile.jpeg")}
-                style={styles.profilePic}
+          {showControls && visibleVideoIndex === index && (
+            <TouchableOpacity
+              style={styles.playPauseButton}
+              onPress={() => handlePlayPause(index)}
+            >
+              <Icon
+                name={isPlaying ? "pause" : "play"}
+                size={50}
+                color="#fff"
               />
-              <Text style={styles.userNameText}>{userName}</Text>
-            </View>
-            <Text style={styles.captionText}>{item.caption}</Text>
-            <View style={styles.reactionsContainer}>
-              <Icon name="eye-outline" size={27} color="#fff" />
-              <Icon name="heart-outline" size={27} color="#fff" />
-              <Icon name="chatbubble-outline" size={27} color="#fff" />
-              <Icon name="share-outline" size={27} color="#fff" />
-            </View>
+            </TouchableOpacity>
+          )}
+        </TouchableOpacity>
+      ) : (
+        <Image
+          source={item.image}
+          style={styles.postMedia}
+          resizeMode="cover"
+        />
+      )}
+      <View style={styles.overlay}>
+        <View style={styles.bottomContainer}>
+          <View style={styles.userInfo}>
+            <Image
+              source={require("../../assets/profile.jpeg")}
+              style={styles.profilePic}
+            />
+            <Text style={styles.userNameText}>{userName}</Text>
+          </View>
+          <Text style={styles.captionText}>{item.caption}</Text>
+          <View style={styles.reactionsContainer}>
+            <Icon name="eye-outline" size={27} color="#fff" />
+            <Icon name="heart-outline" size={27} color="#fff" />
+            <Icon name="chatbubble-outline" size={27} color="#fff" />
+            <Icon name="share-outline" size={27} color="#fff" />
           </View>
         </View>
       </View>
     </View>
   );
-  
-
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar
-        animated={true}
-        barStyle={"light-content"}
-        backgroundColor={"#000"}
-      />
+      <StatusBar barStyle="light-content" backgroundColor="#000" />
       <FlatList
         data={posts}
         renderItem={renderPost}
@@ -119,6 +161,13 @@ const Dashboard = () => {
         snapToAlignment="start"
         decelerationRate="fast"
         snapToInterval={screenHeight}
+        onViewableItemsChanged={onViewableItemsChanged.current}
+        viewabilityConfig={{
+          itemVisiblePercentThreshold: 50,
+        }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       />
     </SafeAreaView>
   );
@@ -138,7 +187,7 @@ const styles = StyleSheet.create({
     height: screenHeight,
     justifyContent: "center",
   },
-  postImage: {
+  postMedia: {
     width: "100%",
     height: "100%",
   },
@@ -179,47 +228,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 20,
-    paddingHorizontal:10,
+    paddingHorizontal: 10,
     width: "100%",
   },
-  watermark: {
-    color: "white",
-    fontSize: 24,
-    opacity: 0.5,
+  playPauseButton: {
+    position: "absolute",
     alignSelf: "center",
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.8)",
-  },
-  modalCloseButton: {
-    position: "absolute",
-    top: 20,
-    right: 20,
-    zIndex: 99,
-  },
-  modalImage: {
-    width: "100%",
-    height: "100%",
-  },
-  modalContent: {
-    position: "absolute",
-    bottom: 20,
-    left: 20,
-    right: 20,
-    alignItems: "center",
-  },
-  noImageContainer: {
-    width: "100%",
-    height: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#333", // Background color for the placeholder
-  },
-  appIcon: {
-    width: 100,
-    height: 100,
+    top: "45%",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    borderRadius: 50,
+    padding: 10,
   },
 });

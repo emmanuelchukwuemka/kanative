@@ -164,7 +164,7 @@ export default function CameraScreen({ navigation }) {
     console.log(formData);
 
     axios
-      .post("http://192.168.0.103/user/saveMedia", formData, {
+      .post("https://kap-backend.onrender.com/user/saveMedia", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
