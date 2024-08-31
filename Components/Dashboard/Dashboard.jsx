@@ -14,32 +14,26 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/Ionicons";
 import { Video } from "expo-av";
+import axios from "axios";
+import { Buffer } from 'buffer'; // Add this line
 
 const { height: screenHeight } = Dimensions.get("window");
 
+const CLOUDINARY_API_KEY = "257212389221118";
+const CLOUDINARY_API_SECRET = "Pq6--RYn75xxzkNNFrdHaOTgWfM";
+
 const Dashboard = () => {
   const [userName, setUserName] = useState("");
+  const [posts, setPosts] = useState([]);
   const [visibleVideoIndex, setVisibleVideoIndex] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showControls, setShowControls] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const videoRefs = useRef([]);
 
-  const posts = [
-    {
-      id: "1",
-      image: require("../../assets/post.jpeg"),
-      caption: "First post",
-    },
-    {
-      id: "2",
-      video: require("../../assets/sample.mp4"),
-      caption: "This is a test caption for my day-to-day activities.",
-    },
-  ];
-
   useEffect(() => {
     fetchUserData();
+    fetchMedia();
   }, []);
 
   const fetchUserData = () => {
@@ -53,6 +47,31 @@ const Dashboard = () => {
       .catch((error) => {
         console.log("Error fetching user data: ", error);
       });
+  };
+
+  const fetchMedia = async () => {
+    try {
+      // Use Buffer to create base64 encoded credentials
+      const auth = Buffer.from(`${CLOUDINARY_API_KEY}:${CLOUDINARY_API_SECRET}`).toString('base64');
+      
+      const response = await axios.get("https://api.cloudinary.com/v1_1/dubaep0qz/kap_media/Media_post", {
+        headers: {
+          'Authorization': `Basic ${auth}`,
+        },
+      });
+
+      // Check the response structure to ensure you are accessing the correct fields
+      const media = response.data.resources.map((item) => ({
+        id: item.public_id,
+        image: item.secure_url, // Adjust based on your response data
+        caption: item.context ? item.context.custom.caption : "", // Adjust based on your response data
+        video: item.resource_type === 'video' ? item.secure_url : null, // Check if it's a video
+      }));
+
+      setPosts(media);
+    } catch (error) {
+      console.error("Error fetching media from Cloudinary:", error);
+    }
   };
 
   const onViewableItemsChanged = useRef(({ viewableItems }) => {
@@ -84,7 +103,7 @@ const Dashboard = () => {
 
   const onRefresh = () => {
     setRefreshing(true);
-    // Simulate fetching new data
+    fetchMedia(); // Fetch new data on refresh
     setTimeout(() => {
       setRefreshing(false);
     }, 2000);
@@ -100,7 +119,7 @@ const Dashboard = () => {
         >
           <Video
             ref={(ref) => (videoRefs.current[index] = ref)}
-            source={item.video}
+            source={{ uri: item.video }}
             style={styles.postMedia}
             resizeMode="cover"
             isLooping
@@ -124,7 +143,7 @@ const Dashboard = () => {
         </TouchableOpacity>
       ) : (
         <Image
-          source={item.image}
+          source={{ uri: item.image }}
           style={styles.postMedia}
           resizeMode="cover"
         />

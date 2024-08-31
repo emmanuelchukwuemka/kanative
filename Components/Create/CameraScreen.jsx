@@ -9,6 +9,7 @@ import {
   Alert,
   Platform,
   StatusBar,
+  TextInput,
 } from "react-native";
 import { Camera, CameraType, FlashMode } from "expo-camera/legacy";
 import * as Audio from "expo-av";
@@ -16,7 +17,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
 import { Video } from "expo-av";
-
+import { router } from "expo-router";
 
 export default function CameraScreen({ navigation }) {
   const [hasPermission, setHasPermission] = useState(null);
@@ -27,9 +28,14 @@ export default function CameraScreen({ navigation }) {
   const [progress, setProgress] = useState(0);
   const [capturedMedia, setCapturedMedia] = useState(null);
   const [mediaType, setMediaType] = useState(null);
+  const [caption, setCaption] = useState(""); // New state for the caption
   const cameraRef = useRef(null);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const recordingTimeout = useRef(null);
+  const CLOUD_NAME = process.env.YOUR_CLOUDINARY_CLOUD_NAME ;
+
+  console.log(CLOUD_NAME);
+  
 
   useEffect(() => {
     (async () => {
@@ -88,7 +94,7 @@ export default function CameraScreen({ navigation }) {
     if (cameraRef.current) {
       const photo = await cameraRef.current.takePictureAsync({
         quality: 1,
-        base64: true,
+        base64: false,
       });
       setCapturedMedia(photo.uri);
       setMediaType("image");
@@ -98,11 +104,13 @@ export default function CameraScreen({ navigation }) {
   const confirmMedia = () => {
     if (capturedMedia) {
       console.log(capturedMedia);
+      console.log("Caption:", caption); // Check if caption is updated
       const type = mediaType === "image" ? "image/jpeg" : "video/mp4";
       const name = mediaType === "image" ? "photo.jpg" : "video.mp4";
-      uploadMedia(capturedMedia, name, type);
+      uploadMedia(capturedMedia, name, type, caption); // Pass caption to uploadMedia
       setCapturedMedia(null);
       setMediaType(null);
+      setCaption(""); // Reset caption after upload
     }
   };
 
@@ -118,7 +126,9 @@ export default function CameraScreen({ navigation }) {
 
     if (cameraRef.current) {
       cameraRef.current
-        .recordAsync({ quality: "1080p" })
+        .recordAsync({
+          quality: Camera.Constants.VideoQuality["4K"],
+        })
         .then((video) => {
           setCapturedMedia(video.uri);
           setMediaType("video");
@@ -146,45 +156,67 @@ export default function CameraScreen({ navigation }) {
     if (recordingTimeout.current) {
       clearTimeout(recordingTimeout.current);
       if (!isRecording) {
-        takePicture(); // Take picture if the button is released before 2 seconds
+        takePicture();
       } else {
-        stopRecording(); // Stop recording if already started
+        stopRecording();
       }
     }
   };
 
-  const uploadMedia = (uri, name, type) => {
-    const formData = new FormData();
-    formData.append("file", {
-      uri: uri,
-      name: name,
-      type: type,
+
+
+const uploadMedia = (uri, name, type, caption) => {
+  const formData = new FormData();
+  formData.append("file", {
+    uri: uri,
+    name: name,
+    type: type,
+  });
+  formData.append("upload_preset", "kap_preset");
+
+  axios
+    .post(`https://api.cloudinary.com/v1_1/dubaep0qz/upload`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    })
+    .then((response) => {
+      console.log("Media uploaded successfully to Cloudinary:", response.data);
+      const mediaUri = response.data.secure_url;
+      
+      // Now send this mediaUri and caption to your backend
+      saveMediaToBackend(mediaUri, caption);
+
+      Alert.alert("Upload Success", "Your media has been uploaded to the feed!");
+      router.replace("dashboard");
+    })
+    .catch((error) => {
+      console.error("Error uploading media to Cloudinary:", error);
+      Alert.alert(
+        "Upload Failed",
+        "There was an error uploading your media. Please try again."
+      );
     });
+};
 
-    console.log(formData);
+const saveMediaToBackend = (mediaUri, caption) => {
+  axios
+    .post("https://kap-backend.onrender.com/saveMedia", {
+      mediaUri: mediaUri,
+      caption: caption,
+    })
+    .then((response) => {
+      console.log("Media saved successfully to backend:", response.data);
+    })
+    .catch((error) => {
+      console.error("Error saving media to backend:", error);
+      Alert.alert(
+        "Save Failed",
+        "There was an error saving your media to the backend. Please try again."
+      );
+    });
+};
 
-    axios
-      .post("https://kap-backend.onrender.com/user/saveMedia", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      })
-      .then((response) => {
-        console.log("Media uploaded successfully:", response.data);
-        Alert.alert(
-          "Upload Success",
-          "Your media has been uploaded to the feed!"
-        );
-        navigation.replace("dashboard");
-      })
-      .catch((error) => {
-        console.error("Error uploading media:", error);
-        Alert.alert(
-          "Upload Failed",
-          "There was an error uploading your media. Please try again."
-        );
-      });
-  };
 
   const pickImageFromGallery = () => {
     ImagePicker.launchImageLibraryAsync({
@@ -219,6 +251,17 @@ export default function CameraScreen({ navigation }) {
             isLooping
           />
         )}
+        <TextInput
+          style={styles.captionInput}
+          placeholder="Add a caption..."
+          placeholderTextColor="#888"
+          value={caption}
+          autoFocus
+          onChangeText={(text) => {
+            console.log("Caption input changed:", text); 
+            setCaption(text);
+          }}
+        />
         <View style={styles.overlay}>
           <View style={styles.buttonContainer1}>
             <TouchableOpacity
@@ -254,7 +297,7 @@ export default function CameraScreen({ navigation }) {
       <Camera
         style={styles.camera}
         type={cameraType}
-        flashMode={flashMode} // Set flash mode
+        flashMode={flashMode}
         ref={cameraRef}
         onCameraReady={handleCameraReady}
       >
@@ -273,43 +316,38 @@ export default function CameraScreen({ navigation }) {
                     : "flash-auto"
                 }
                 size={30}
-                color="white"
+                color="yellow"
               />
             </TouchableOpacity>
           </View>
-
-          {isRecording && (
-            <View style={styles.timerContainer}>
-              <Text style={styles.recordingText}>{recordingTime}s</Text>
-            </View>
-          )}
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={styles.iconButtonSmall}
-              onPress={toggleCameraType}
-            >
-              <Ionicons name="camera-reverse" size={30} color="white" />
+          <View style={styles.buttonContainer2}>
+            <TouchableOpacity onPress={toggleCameraType}>
+              <Ionicons
+                name="camera-reverse-outline"
+                size={30}
+                style={{ color: "white" }}
+              />
             </TouchableOpacity>
-            <View style={styles.captureWrapper}>
-              <TouchableOpacity
-                style={[
-                  styles.captureButton,
-                  {
-                    borderColor: "white",
-                    borderWidth: isRecording ? progress * 10 : 5,
-                  },
-                ]}
-                onPressIn={handleCapturePressIn}
-                onPressOut={handleCapturePressOut}
-              >
-                <Ionicons name="camera" size={30} color="white" />
-              </TouchableOpacity>
-            </View>
             <TouchableOpacity
-              style={styles.iconButtonSmall}
-              onPress={pickImageFromGallery}
+              style={styles.captureButton}
+              onPressIn={handleCapturePressIn}
+              onPressOut={handleCapturePressOut}
             >
-              <Ionicons name="images" size={30} color="white" />
+              <View style={styles.progressCircle}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    { height: `${progress * 100}%` },
+                  ]}
+                />
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={pickImageFromGallery}>
+              <Ionicons
+                name="image-outline"
+                size={30}
+                style={{ color: "white" }}
+              />
             </TouchableOpacity>
           </View>
         </View>
@@ -321,85 +359,81 @@ export default function CameraScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "black",
+    justifyContent: "center",
   },
   camera: {
     flex: 1,
+    justifyContent: "flex-end",
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.3)",
     justifyContent: "space-between",
-    padding: 16,
   },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+    paddingHorizontal: 20,
+    marginBottom: 100,
   },
 
-  buttonContainer1: {
-    position: "absolute",
+  buttonContainer2: {
     flexDirection: "row",
-    gap: 12,
-    bottom: 20,
-    left: 10,
     justifyContent: "space-between",
-    width: "100%",
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+    alignItems:"center",
+    paddingHorizontal: 20,
+    marginBottom: 50,
   },
-  captureButton: {
-    width: 70,
-    height: 70,
-    backgroundColor: "transparent",
-    borderRadius: 35,
-    borderColor: "white",
-    borderWidth: 5,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  captureWrapper: {
-    alignItems: "center",
-    justifyContent: "center",
-    flex: 1,
-  },
-  iconButtonSmall: {
-    width: 50,
-    height: 50,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-    borderRadius: 25,
-  },
-
-  iconButtonSmall1: {
-    width: 50,
-    height: 50,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    borderWidth: 4,
-    borderColor: "lightgreen",
-    borderRadius: 25,
-  },
-  timerContainer: {
-    position: "absolute",
-    top: 46,
-    left: 16,
-    padding: 8,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    borderRadius: 4,
-  },
-  recordingText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
+  buttonContainer1: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    marginTop: Platform.OS === "android" ? StatusBar.currentHeight + 10 : 10,
   },
   flashLightContainer: {
-    flexDirection: "column",
+    flexDirection: "row",
     justifyContent: "space-between",
-    gap: 20,
-    marginLeft: "auto",
+    paddingHorizontal: 20,
+    marginTop: Platform.OS === "android" ? StatusBar.currentHeight + 10 : 10,
+  },
+  iconButtonSmall: {
+    backgroundColor: "#444",
     padding: 10,
-    marginTop: 30,
+    borderRadius: 30,
+    opacity: 0.8,
+  },
+  iconButtonSmall1: {
+    backgroundColor: "#444",
+    padding: 10,
+    borderRadius: 30,
+    opacity: 0.8,
+  },
+  captureButton: {
+    alignItems: "center",
+  },
+  progressCircle: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: "green",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  progressFill: {
+    width: 30,
+    height: 30,
+    backgroundColor: "white",
+    borderRadius: 35,
+  }, 
+  captionInput: {
+    color: "white",
+    padding: 10,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    marginHorizontal: 20,
+    borderRadius: 5,
+    marginTop: 10,
+    borderWidth:2,
+    width:"100%"
   },
 });
