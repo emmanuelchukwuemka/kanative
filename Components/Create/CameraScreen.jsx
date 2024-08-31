@@ -32,9 +32,6 @@ export default function CameraScreen({ navigation }) {
   const cameraRef = useRef(null);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const recordingTimeout = useRef(null);
-  const CLOUD_NAME = process.env.YOUR_CLOUDINARY_CLOUD_NAME;
-
-  console.log(CLOUD_NAME);
 
   useEffect(() => {
     (async () => {
@@ -162,49 +159,52 @@ export default function CameraScreen({ navigation }) {
     }
   };
 
-  const uploadMedia = (uri, name, type, caption) => {
-    const formData = new FormData();
-    formData.append("file", {
-      uri: uri,
-      name: name,
-      type: type,
+const uploadMedia = (uri, name, type, caption) => {
+  const fileUri =
+    Platform.OS === "android" && uri.startsWith("file://")
+      ? uri
+      : `file://${uri}`;
+  const formData = new FormData();
+
+  formData.append("file", {
+    uri: fileUri,
+    name: name,
+    type: type,
+  });
+  formData.append("upload_preset", "kap_preset");
+  
+
+  axios
+    .post(`http://192.168.0.103:8000/user/saveMedia`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    })
+    .then((response) => {
+      const mediaUri = response.data.secure_url;
+      console.log("Media uploaded successfully to Cloudinary:", mediaUri);
+      return saveMediaToBackend(mediaUri, caption);
+    })
+    .then(() => {
+      Alert.alert(
+        "Upload Success",
+        "Your media has been uploaded to the feed!"
+      );
+      router.replace("dashboard");
+    })
+    .catch((error) => {
+      console.error("Error uploading media to Cloudinary:", error);
+      // Alert.alert(
+      //   "Upload Failed",
+      //   "There was an error uploading your media. Please try again."
+      // );
     });
-    formData.append("upload_preset", "kap_preset");
+};
 
-    axios
-      .post(`https://api.cloudinary.com/v1_1/dubaep0qz/upload`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      })
-      .then((response) => {
-        console.log(
-          "Media uploaded successfully to Cloudinary:",
-          response.data
-        );
-        const mediaUri = response.data.secure_url;
-
-        // Now send this mediaUri and caption to your backend
-        saveMediaToBackend(mediaUri, caption);
-
-        Alert.alert(
-          "Upload Success",
-          "Your media has been uploaded to the feed!"
-        );
-        router.replace("dashboard");
-      })
-      .catch((error) => {
-        console.error("Error uploading media to Cloudinary:", error);
-        Alert.alert(
-          "Upload Failed",
-          "There was an error uploading your media. Please try again."
-        );
-      });
-  };
 
   const saveMediaToBackend = (mediaUri, caption) => {
     axios
-      .post("https://kap-backend.onrender.com/saveMedia", {
+      .post("http://192.168.0.103:8000/user/saveMedia", {
         mediaUri: mediaUri,
         caption: caption,
       })
@@ -212,7 +212,6 @@ export default function CameraScreen({ navigation }) {
         console.log("Media was saved successfully to backend", response.data);
       })
       .catch((error) => {
-        console.error("Error saving media to backend:", error);
         Alert.alert(
           "Save Failed",
           "There was an error saving your media to the backend. Please try again."
@@ -260,7 +259,6 @@ export default function CameraScreen({ navigation }) {
           value={caption}
           autoFocus
           onChangeText={(text) => {
-            console.log("Caption input changed:", text);
             setCaption(text);
           }}
         />
