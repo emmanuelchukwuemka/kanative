@@ -206,7 +206,7 @@ const saveMediaToBackend = (mediaUri, caption) => {
       caption: caption,
     })
     .then((response) => {
-      console.log("Media saved successfully to backend:", response.data);
+      console.log("Media was saved successfully to backend", response.data);
     })
     .catch((error) => {
       console.error("Error saving media to backend:", error);
