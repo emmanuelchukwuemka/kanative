@@ -17,7 +17,6 @@ import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
 import { Video } from "expo-av";
 
-
 export default function CameraScreen({ navigation }) {
   const [hasPermission, setHasPermission] = useState(null);
   const [cameraType, setCameraType] = useState(CameraType.back);
@@ -100,7 +99,7 @@ export default function CameraScreen({ navigation }) {
       console.log(capturedMedia);
       const type = mediaType === "image" ? "image/jpeg" : "video/mp4";
       const name = mediaType === "image" ? "photo.jpg" : "video.mp4";
-      uploadMedia(capturedMedia, name, type);
+      uploadMedia(capturedMedia, type, name);
       setCapturedMedia(null);
       setMediaType(null);
     }
@@ -153,38 +152,35 @@ export default function CameraScreen({ navigation }) {
     }
   };
 
-  const uploadMedia = (uri, name, type) => {
-    const formData = new FormData();
-    formData.append("file", {
-      uri: uri,
-      name: name,
-      type: type,
-    });
+const uploadMedia = (uri, type, name) => {
 
-    console.log(formData);
+  const formData = new FormData();
 
-    axios
-      .post("http://192.168.0.103/user/saveMedia", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      })
-      .then((response) => {
-        console.log("Media uploaded successfully:", response.data);
-        Alert.alert(
-          "Upload Success",
-          "Your media has been uploaded to the feed!"
-        );
-        navigation.replace("dashboard");
-      })
-      .catch((error) => {
-        console.error("Error uploading media:", error);
-        Alert.alert(
-          "Upload Failed",
-          "There was an error uploading your media. Please try again."
-        );
-      });
+  const file = {
+    uri: Platform.OS === "android" ? uri.replace("file://", "") : uri,
+    name: name,
+    type: type,
   };
+
+  formData.append("file", file);
+
+  console.log("FormData:", formData);
+  axios
+    .post("http://192.168.10.142/user/saveMedia", formData)
+    .then((response) => {
+      console.log("Media uploaded successfully:", response.data);
+      Alert.alert("Upload Success", "Your media has been uploaded!");
+      router.replace("dashboard");
+    })
+    .catch((error) => {
+      console.error("Error uploading media:", error);
+      Alert.alert(
+        "Upload Failed",
+        "There was an error uploading your media. Please try again."
+      );
+    });
+};
+
 
   const pickImageFromGallery = () => {
     ImagePicker.launchImageLibraryAsync({
