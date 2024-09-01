@@ -199,7 +199,7 @@ export default function CameraScreen({ navigation }) {
       })
       .then((response) => {
         const mediaUri = response.data.media;
-        console.log("Media uploaded successfully to Cloudinary:", mediaUri);
+        console.log("Media uploaded successfully to Cloudinary");
       })
       .then(() => {
         Alert.alert(
