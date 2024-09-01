@@ -175,7 +175,7 @@ const uploadMedia = (uri, name, type, caption) => {
   
 
   axios
-    .post(`http://192.168.0.103:8000/user/saveMedia`, formData, {
+    .post(`https://kap-backend.onrender.com/user/saveMedia`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -183,7 +183,6 @@ const uploadMedia = (uri, name, type, caption) => {
     .then((response) => {
       const mediaUri = response.data.secure_url;
       console.log("Media uploaded successfully to Cloudinary:", mediaUri);
-      return saveMediaToBackend(mediaUri, caption);
     })
     .then(() => {
       Alert.alert(
@@ -194,30 +193,14 @@ const uploadMedia = (uri, name, type, caption) => {
     })
     .catch((error) => {
       console.error("Error uploading media to Cloudinary:", error);
-      // Alert.alert(
-      //   "Upload Failed",
-      //   "There was an error uploading your media. Please try again."
-      // );
+      Alert.alert(
+        "Upload Failed",
+        "There was an error uploading your media. Please try again."
+      );
     });
 };
 
 
-  const saveMediaToBackend = (mediaUri, caption) => {
-    axios
-      .post("http://192.168.0.103:8000/user/saveMedia", {
-        mediaUri: mediaUri,
-        caption: caption,
-      })
-      .then((response) => {
-        console.log("Media was saved successfully to backend", response.data);
-      })
-      .catch((error) => {
-        Alert.alert(
-          "Save Failed",
-          "There was an error saving your media to the backend. Please try again."
-        );
-      });
-  };
 
   const pickImageFromGallery = () => {
     ImagePicker.launchImageLibraryAsync({
