@@ -18,6 +18,7 @@ import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
 import { Video } from "expo-av";
 import { router } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function CameraScreen({ navigation }) {
   const [hasPermission, setHasPermission] = useState(null);
@@ -28,12 +29,29 @@ export default function CameraScreen({ navigation }) {
   const [progress, setProgress] = useState(0);
   const [capturedMedia, setCapturedMedia] = useState(null);
   const [mediaType, setMediaType] = useState(null);
-  const [caption, setCaption] = useState(""); // New state for the caption
+  const [caption, setCaption] = useState("");
+  const [userName, setUserName] = useState("");
   const cameraRef = useRef(null);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const recordingTimeout = useRef(null);
 
+
+  const fetchUserData = async () => {
+    try {
+      const user = await AsyncStorage.getItem("user");
+      if (user) {
+        const parsedUser = JSON.parse(user);
+        setUserName(parsedUser.userName || "User");
+      }
+    } catch (error) {
+      console.log("Error fetching user data: ", error);
+    }
+  };
+
+
+  
   useEffect(() => {
+    fetchUserData();
     (async () => {
       const cameraStatus = await Camera.requestCameraPermissionsAsync();
       const audioStatus = await Audio.Audio.requestPermissionsAsync();
@@ -99,14 +117,12 @@ export default function CameraScreen({ navigation }) {
 
   const confirmMedia = () => {
     if (capturedMedia) {
-      console.log(capturedMedia);
-      console.log("Caption:", caption); // Check if caption is updated
       const type = mediaType === "image" ? "image/jpeg" : "video/mp4";
       const name = mediaType === "image" ? "photo.jpg" : "video.mp4";
-      uploadMedia(capturedMedia, name, type, caption); // Pass caption to uploadMedia
+      uploadMedia(capturedMedia, name, type, caption, userName); 
       setCapturedMedia(null);
       setMediaType(null);
-      setCaption(""); // Reset caption after upload
+      setCaption(""); 
     }
   };
 
@@ -159,46 +175,47 @@ export default function CameraScreen({ navigation }) {
     }
   };
 
-const uploadMedia = (uri, name, type, caption) => {
-  const fileUri =
-    Platform.OS === "android" && uri.startsWith("file://")
-      ? uri
-      : `file://${uri}`;
-  const formData = new FormData();
+  const uploadMedia = (uri, name, type, caption, userName) => {
+    const fileUri =
+      Platform.OS === "android" && uri.startsWith("file://")
+        ? uri
+        : `file://${uri}`;
+    const formData = new FormData();
 
-  formData.append("file", {
-    uri: fileUri,
-    name: name,
-    type: type,
-  });
-  formData.append("upload_preset", "kap_preset");
-  
-
-  axios
-    .post(`https://kap-backend.onrender.com/user/saveMedia`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    })
-    .then((response) => {
-      const mediaUri = response.data.secure_url;
-      console.log("Media uploaded successfully to Cloudinary:", mediaUri);
-    })
-    .then(() => {
-      Alert.alert(
-        "Upload Success",
-        "Your media has been uploaded to the feed!"
-      );
-      router.replace("dashboard");
-    })
-    .catch((error) => {
-      console.error("Error uploading media to Cloudinary:", error);
-      Alert.alert(
-        "Upload Failed",
-        "There was an error uploading your media. Please try again."
-      );
+    formData.append("file", {
+      uri: fileUri,
+      name: name,
+      type: type,
     });
-};
+    formData.append("upload_preset", "kap_preset");
+    formData.append("caption", caption); 
+    formData.append("userName", userName); 
+
+    axios
+      .post(`https://kap-backend.onrender.com/user/saveMedia`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then((response) => {
+        const mediaUri = response.data.media;
+        console.log("Media uploaded successfully to Cloudinary:", mediaUri);
+      })
+      .then(() => {
+        Alert.alert(
+          "Upload Success",
+          "Your media has been uploaded to the feed!"
+        );
+        router.replace("dashboard");
+      })
+      .catch((error) => {
+        console.error("Error uploading media to Cloudinary:", error);
+        Alert.alert(
+          "Upload Failed",
+          "There was an error uploading your media. Please try again."
+        );
+      });
+  };
 
 
 

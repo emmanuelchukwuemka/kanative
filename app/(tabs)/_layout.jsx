@@ -1,20 +1,21 @@
 import { StyleSheet } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Tabs } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { TouchableOpacity, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import CameraScreen from '../../Components/Create/CameraScreen'; 
 
 const TabLayout = () => {
   const [userName, setUserName] = useState("");
+  const [lastTabPress, setLastTabPress] = useState(0); // Track the last tab press time
+  const homeTabPressCount = useRef(0); // Ref to keep track of multiple presses
 
   const fetchUserData = async () => {
     try {
       const user = await AsyncStorage.getItem("user");
       if (user) {
         const parsedUser = JSON.parse(user);
-        setUserName(parsedUser.userName || "User"); // Default to "User" if userName is not present
+        setUserName(parsedUser.userName || "User");
       }
     } catch (error) {
       console.log("Error fetching user data: ", error);
@@ -24,7 +25,24 @@ const TabLayout = () => {
   useEffect(() => {
     fetchUserData();
   }, []);
-  
+
+  const handleTabPress = (tabName) => {
+    const now = Date.now();
+    if (tabName === "dashboard") {
+      if (now - lastTabPress < 300) { // If tapped again within 300ms
+        homeTabPressCount.current += 1;
+        if (homeTabPressCount.current > 1) {
+          // Trigger refresh feed logic here
+          console.log("Refresh feed triggered");
+          // You may need to use a callback or context to inform the Dashboard to refresh
+        }
+      } else {
+        homeTabPressCount.current = 1;
+      }
+      setLastTabPress(now);
+    }
+  };
+
   return (
     <Tabs
       screenOptions={{
@@ -47,11 +65,13 @@ const TabLayout = () => {
           ),
           headerShown: false,
           tabBarLabel: "",
+          listeners: {
+            tabPress: () => handleTabPress("dashboard"),
+          },
         }}
       />
       <Tabs.Screen
         name="create"
-      
         options={{
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
@@ -74,7 +94,7 @@ const TabLayout = () => {
               size={size}
             />
           ),
-          title: userName, // Pass userName directly as the title
+          title: userName,
           tabBarLabel: "",
           headerRight: () => (
             <View style={styles.headerIconsContainer}>
