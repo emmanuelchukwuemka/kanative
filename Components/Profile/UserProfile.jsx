@@ -34,7 +34,7 @@ const UserProfile = () => {
           // Optionally, you can fetch and set the profile image from storage here
           fetchUserPosts(parsedUser.userName); // Fetch posts when user data is fetched
         }
-      })
+      })  
       .catch(error => {
         console.log("Error fetching user data: ", error);
       });

@@ -17,7 +17,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/Ionicons";
 import { Video } from "expo-av";
 import axios from "axios";
-import { Buffer } from 'buffer'; // Add this line
+import { useFocusEffect } from '@react-navigation/native'; 
 
 const { height: screenHeight } = Dimensions.get("window");
 
@@ -28,11 +28,32 @@ const Dashboard = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showControls, setShowControls] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [videoProgress, setVideoProgress] = useState(0);
   const videoRefs = useRef([]);
+
+  useFocusEffect(
+    useCallback(() => {
+      // Pause all videos when this screen loses focus
+      videoRefs.current.forEach((video) => {
+        if (video) {
+          video.pauseAsync();
+        }
+      });
+      return () => {
+        // Cleanup function to ensure videos are paused when component unmounts
+        videoRefs.current.forEach((video) => {
+          if (video) {
+            video.pauseAsync();
+          }
+        });
+      };
+    }, [])
+  );
 
   useEffect(() => {
     fetchUserData();
-    fetchMedia(1);
+    fetchMedia();
   }, []);
 
   const fetchUserData = () => {
@@ -48,29 +69,17 @@ const Dashboard = () => {
       });
   };
 
-  const fetchMedia = async () => {
-    try {
-      // Use Buffer to create base64 encoded credentials
-      const auth = Buffer.from(`${CLOUDINARY_API_KEY}:${CLOUDINARY_API_SECRET}`).toString('base64');
-      
-      const response = await axios.get("https://api.cloudinary.com/v1_1/dubaep0qz/kap_media/Media_post", {
-        headers: {
-          'Authorization': `Basic ${auth}`,
-        },
+  const fetchMedia = () => {
+    axios
+      .get("https://kap-backend.onrender.com/user/posts")
+      .then((response) => {
+        setPosts(response.data.mediaPosts);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.log("Error fetching media: ", error);
+        setLoading(false);
       });
-
-      // Check the response structure to ensure you are accessing the correct fields
-      const media = response.data.resources.map((item) => ({
-        id: item.public_id,
-        image: item.secure_url, // Adjust based on your response data
-        caption: item.context ? item.context.custom.caption : "", // Adjust based on your response data
-        video: item.resource_type === 'video' ? item.secure_url : null, // Check if it's a video
-      }));
-
-      setPosts(media);
-    } catch (error) {
-      console.error("Error fetching media from Cloudinary:", error);
-    }
   };
 
   const onViewableItemsChanged = useRef(({ viewableItems }) => {
@@ -102,7 +111,8 @@ const Dashboard = () => {
 
   const onRefresh = () => {
     setRefreshing(true);
-    fetchMedia(); // Fetch new data on refresh
+    setLoading(true);
+    fetchMedia();
     setTimeout(() => {
       setRefreshing(false);
     }, 2000);
@@ -116,61 +126,75 @@ const Dashboard = () => {
 
   const renderPost = ({ item, index }) => (
     <View style={styles.postCard}>
-      {item.video ? (
-        <TouchableOpacity
-          style={styles.postMedia}
-          onPress={handleVideoPress}
-          activeOpacity={1}
-        >
-          <Video
-            ref={(ref) => (videoRefs.current[index] = ref)}
-            source={{ uri: item.video }}
-            style={styles.postMedia}
-            resizeMode="cover"
-            isLooping
-            shouldPlay={visibleVideoIndex === index && isPlaying}
-            volume={1.0}
-            isMuted={false}
-            useNativeControls={false}
-          />
-          {showControls && visibleVideoIndex === index && (
-            <TouchableOpacity
-              style={styles.playPauseButton}
-              onPress={() => handlePlayPause(index)}
-            >
-              <Icon
-                name={isPlaying ? "pause" : "play"}
-                size={50}
-                color="#fff"
-              />
-            </TouchableOpacity>
-          )}
-        </TouchableOpacity>
+      {loading ? (
+        <ActivityIndicator size="large" color="#fff" />
       ) : (
-        <Image
-          source={{ uri: item.image }}
-          style={styles.postMedia}
-          resizeMode="cover"
-        />
-      )}
-      <View style={styles.overlay}>
-        <View style={styles.bottomContainer}>
-          <View style={styles.userInfo}>
+        <>
+          {item.format === "mp4" ? (
+            <TouchableOpacity
+              style={styles.postMedia}
+              onPress={handleVideoPress}
+              activeOpacity={1}
+            >
+              <Video
+                ref={(ref) => (videoRefs.current[index] = ref)}
+                source={{ uri: item.url }}
+                style={styles.postMedia}
+                resizeMode="cover"
+                isLooping
+                shouldPlay={visibleVideoIndex === index && isPlaying}
+                volume={1.0}
+                isMuted={false}
+                useNativeControls={false}
+                onPlaybackStatusUpdate={(status) => onPlaybackStatusUpdate(status, index)}
+              />
+              {showControls && visibleVideoIndex === index && (
+                <TouchableOpacity
+                  style={styles.playPauseButton}
+                  onPress={() => handlePlayPause(index)}
+                >
+                  <Icon
+                    name={isPlaying ? "pause" : "play"}
+                    size={50}
+                    color="#fff"
+                  />
+                </TouchableOpacity>
+              )}
+              <View style={styles.progressBar}>
+                <View style={[styles.progress, { width: `${videoProgress * 100}%` }]} />
+              </View>
+            </TouchableOpacity>
+          ) : (
             <Image
-              source={require("../../assets/profile.jpeg")}
-              style={styles.profilePic}
+              source={{ uri: item.url }}
+              style={styles.postMedia}
+              resizeMode="cover"
             />
-            <Text style={styles.userNameText}>{userName}</Text>
+          )}
+          <View style={styles.overlay}>
+            <View style={styles.bottomContainer}>
+              <View style={styles.userInfo}>
+                <Image
+                  source={require("../../assets/profile.jpeg")}
+                  style={styles.profilePic}
+                />
+                <Text style={styles.userNameText}>
+                  {item.username || "Unknown"}
+                </Text>
+              </View>
+              <Text style={styles.captionText}>
+                {item.caption || ""}
+              </Text>
+              <View style={styles.reactionsContainer}>
+                <Icon name="eye-outline" size={27} color="#fff" />
+                <Icon name="heart-outline" size={27} color="#fff" />
+                <Icon name="chatbubble-outline" size={27} color="#fff" />
+                <Icon name="share-outline" size={27} color="#fff" />
+              </View>
+            </View>
           </View>
-          <Text style={styles.captionText}>{item.caption}</Text>
-          <View style={styles.reactionsContainer}>
-            <Icon name="eye-outline" size={27} color="#fff" />
-            <Icon name="heart-outline" size={27} color="#fff" />
-            <Icon name="chatbubble-outline" size={27} color="#fff" />
-            <Icon name="share-outline" size={27} color="#fff" />
-          </View>
-        </View>
-      </View>
+        </>
+      )}
     </View>
   );
 
@@ -180,7 +204,7 @@ const Dashboard = () => {
       <FlatList
         data={posts}
         renderItem={renderPost}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item._id}
         contentContainerStyle={styles.flatListContainer}
         snapToAlignment="start"
         decelerationRate="fast"
@@ -189,13 +213,8 @@ const Dashboard = () => {
         viewabilityConfig={{
           itemVisiblePercentThreshold: 50,
         }}
-        onEndReached={loadMorePosts}
-        onEndReachedThreshold={0.5}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        ListFooterComponent={
-          loadingMore && <ActivityIndicator size="large" color="#fff" />
         }
       />
     </SafeAreaView>
@@ -235,45 +254,38 @@ const styles = StyleSheet.create({
   userInfo: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  userNameText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-    marginLeft: 10,
-  },
-  captionText: {
-    color: "#fff",
-    fontSize: 16,
-    marginVertical: 5,
-  },
-  reactionsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: 150,
-    marginTop: 10,
-  },
-  playPauseButton: {
-    position: "absolute",
-    top: "45%",
-    left: "45%",
-  },
-  progressBar: {
-    position: "absolute",
-    bottom: 10,
-    left: 10,
-    right: 10,
-    height: 4,
-    backgroundColor: "#555",
-  },
-  progress: {
-    height: "100%",
-    backgroundColor: "#fff",
+    marginBottom: 5,
   },
   profilePic: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 25,
+    marginRight: 10,
+  },
+  userNameText: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#fff",
+  },
+  captionText: {
+    fontSize: 16,
+    color: "#fff",
+    marginBottom: 10,
+  },
+  reactionsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 20,
+    paddingHorizontal: 10,
+    width: "100%",
+  },
+  playPauseButton: {
+    position: "absolute",
+    alignSelf: "center",
+    top: "45%",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    borderRadius: 50,
+    padding: 10,
   },
   progressBar: {
     position: "absolute",
