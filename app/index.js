@@ -5,6 +5,7 @@ import Landing from "../Components/Landing/Landing";
 import SplashScreen from "../Components/Loader/SplashScreen";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Toast from "react-native-toast-message";
 
 export default function Page() {
   const [isSplash, setIsSplash] = useState(true);
@@ -34,6 +35,7 @@ export default function Page() {
   return (
     <View style={styles.container}>
       {isSplash ? <SplashScreen /> : <Landing />}
+      <Toast ref={(ref) => Toast.setRef(ref)} />
     </View>
   );
 }

@@ -19,6 +19,7 @@ import axios from "axios";
 import { Video } from "expo-av";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Toast from "react-native-toast-message";
 
 export default function CameraScreen({ navigation }) {
   const [hasPermission, setHasPermission] = useState(null);
@@ -31,6 +32,7 @@ export default function CameraScreen({ navigation }) {
   const [mediaType, setMediaType] = useState(null);
   const [caption, setCaption] = useState("");
   const [userName, setUserName] = useState("");
+  const [uploadProgress, setUploadProgress] = useState(0); // New state for upload progress
   const cameraRef = useRef(null);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const recordingTimeout = useRef(null);
@@ -56,10 +58,12 @@ export default function CameraScreen({ navigation }) {
         cameraStatus.status !== "granted" ||
         audioStatus.status !== "granted"
       ) {
-        Alert.alert(
-          "Permissions required",
-          "Camera and audio permissions are required to use this feature."
-        );
+        Toast.show({
+          type: 'error',
+          position: 'top',
+          text1: 'Permissions required',
+          text2: 'Camera and audio permissions are required to use this feature.',
+        });
       }
 
       setHasPermission(
@@ -171,46 +175,62 @@ export default function CameraScreen({ navigation }) {
     }
   };
 
-  const uploadMedia = (uri, name, type, caption, userName) => {
+  const uploadMedia = (uri, name, type, caption) => {
     const fileUri =
       Platform.OS === "android" && uri.startsWith("file://")
         ? uri
         : `file://${uri}`;
     const formData = new FormData();
 
-  formData.append("file", {
-    uri: fileUri,
-    name: name,
-    type: type,
-  });
-  formData.append("upload_preset", "kap_preset");
-  
+    formData.append("file", {
+      uri: fileUri,
+      name: name,
+      type: type,
+    });
+    formData.append("upload_preset", "kap_preset");
+    formData.append("caption", caption);
+    formData.append("userName", userName);
 
     axios
-      .post(`https://kap-backend.onrender.com/user/saveMedia`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      })
-      .then((response) => {
-        const mediaUri = response.data.media;
-        console.log("Media uploaded successfully to Cloudinary");
-      })
-      .then(() => {
-        Alert.alert(
-          "Upload Success",
-          "Your media has been uploaded to the feed!"
+    .post(`https://kap-backend.onrender.com/user/saveMedia`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      onUploadProgress: (progressEvent) => {
+        const percentCompleted = Math.round(
+          (progressEvent.loaded * 100) / progressEvent.total
         );
-        router.replace("dashboard");
-      })
-      .catch((error) => {
-        console.error("Error uploading media to Cloudinary:", error);
-        Alert.alert(
-          "Upload Failed",
-          "There was an error uploading your media. Please try again."
-        );
+        console.log(`Upload Progress: ${percentCompleted}%`); // Log progress
+        setUploadProgress(percentCompleted / 100);
+      },
+    })
+    .then((response) => {
+      const mediaUri = response.data.media;
+      console.log("Media uploaded successfully to Cloudinary");
+    })
+    .then(() => {
+      Toast.show({
+        type: 'success',
+        position: 'bottom',
+        text1: 'Upload Success',
+        text2: 'Your media has been uploaded to the feed!',
+        visibilityTime: 4000,
+        autoHide: true,
       });
+      router.replace("dashboard");
+    })
+    .catch((error) => {
+      console.error("Error uploading media to Cloudinary:", error);
+      Toast.show({
+        type: 'error',
+        position: 'top',
+        text1: 'Upload Failed',
+        text2: 'There was an error uploading your media. Please try again.',
+      });
+    });
+  
   };
+
 
  
 
@@ -242,7 +262,7 @@ export default function CameraScreen({ navigation }) {
           <Video
             source={{ uri: capturedMedia }}
             style={styles.camera}
-            resizeMode="cover"
+            resizeMode="contain"
             shouldPlay
             isLooping
           />
@@ -297,6 +317,16 @@ export default function CameraScreen({ navigation }) {
         onCameraReady={handleCameraReady}
       >
         <View style={styles.overlay}>
+        {uploadProgress > 0 && (
+          <View style={styles.progressBarContainer}>
+            <View
+              style={[
+                styles.progressBar,
+                { width: `${uploadProgress * 100}%` },
+              ]}
+            />
+          </View>
+        )}
           <View style={styles.flashLightContainer}>
             <TouchableOpacity
               onPress={toggleFlashMode}
@@ -346,6 +376,7 @@ export default function CameraScreen({ navigation }) {
             </TouchableOpacity>
           </View>
         </View>
+       
       </Camera>
     </SafeAreaView>
   );
@@ -430,5 +461,17 @@ const styles = StyleSheet.create({
     marginTop: 10,
     borderWidth: 2,
     width: "100%",
+  },
+  progressBarContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 5,
+    backgroundColor: "red",
+  },
+  progressBar: {
+    height: "100%",
+    backgroundColor: "#00f",
   },
 });
