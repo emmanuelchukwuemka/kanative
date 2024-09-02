@@ -35,21 +35,6 @@ export default function CameraScreen({ navigation }) {
   const [isCameraReady, setIsCameraReady] = useState(false);
   const recordingTimeout = useRef(null);
 
-
-  const fetchUserData = async () => {
-    try {
-      const user = await AsyncStorage.getItem("user");
-      if (user) {
-        const parsedUser = JSON.parse(user);
-        setUserName(parsedUser.userName || "User");
-      }
-    } catch (error) {
-      console.log("Error fetching user data: ", error);
-    }
-  };
-
-
-  
   useEffect(() => {
     fetchUserData();
     (async () => {
@@ -119,10 +104,10 @@ export default function CameraScreen({ navigation }) {
     if (capturedMedia) {
       const type = mediaType === "image" ? "image/jpeg" : "video/mp4";
       const name = mediaType === "image" ? "photo.jpg" : "video.mp4";
-      uploadMedia(capturedMedia, name, type, caption, userName); 
+      uploadMedia(capturedMedia, name, type, caption); // Pass caption to uploadMedia
       setCapturedMedia(null);
       setMediaType(null);
-      setCaption(""); 
+      setCaption(""); // Reset caption after upload
     }
   };
 
@@ -182,14 +167,13 @@ export default function CameraScreen({ navigation }) {
         : `file://${uri}`;
     const formData = new FormData();
 
-    formData.append("file", {
-      uri: fileUri,
-      name: name,
-      type: type,
-    });
-    formData.append("upload_preset", "kap_preset");
-    formData.append("caption", caption); 
-    formData.append("userName", userName); 
+  formData.append("file", {
+    uri: fileUri,
+    name: name,
+    type: type,
+  });
+  formData.append("upload_preset", "kap_preset");
+  
 
     axios
       .post(`https://kap-backend.onrender.com/user/saveMedia`, formData, {
