@@ -17,7 +17,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/Ionicons";
 import { Video } from "expo-av";
 import axios from "axios";
-import { useFocusEffect } from '@react-navigation/native'; 
+import { useFocusEffect } from '@react-navigation/native';
 
 const { height: screenHeight } = Dimensions.get("window");
 
@@ -56,30 +56,28 @@ const Dashboard = () => {
     fetchMedia();
   }, []);
 
-  const fetchUserData = () => {
-    AsyncStorage.getItem("user")
-      .then((user) => {
-        if (user) {
-          const parsedUser = JSON.parse(user);
-          setUserName(parsedUser.userName);
-        }
-      })
-      .catch((error) => {
-        console.log("Error fetching user data: ", error);
-      });
+  const fetchUserData = async () => {
+    try {
+      const user = await AsyncStorage.getItem("user");
+      if (user) {
+        const parsedUser = JSON.parse(user);
+        setUserName(parsedUser.userName);
+      }
+    } catch (error) {
+      console.error("Error fetching user data: ", error);
+    }
   };
 
-  const fetchMedia = () => {
-    axios
-      .get("https://kap-backend.onrender.com/user/posts")
-      .then((response) => {
-        setPosts(response.data.mediaPosts);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.log("Error fetching media: ", error);
-        setLoading(false);
-      });
+  const fetchMedia = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get("https://kap-backend.onrender.com/user/posts");
+      setPosts(response.data.mediaPosts);
+    } catch (error) {
+      console.error("Error fetching media: ", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const onViewableItemsChanged = useRef(({ viewableItems }) => {
@@ -109,16 +107,13 @@ const Dashboard = () => {
     setShowControls(!showControls);
   };
 
-  const onRefresh = () => {
+  const onRefresh = async () => {
     setRefreshing(true);
-    setLoading(true);
-    fetchMedia();
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 2000);
+    await fetchMedia();
+    setRefreshing(false);
   };
 
-  const onPlaybackStatusUpdate = (status, index) => {
+  const onPlaybackStatusUpdate = (status) => {
     if (status.isLoaded) {
       setVideoProgress(status.positionMillis / status.durationMillis);
     }
@@ -146,7 +141,7 @@ const Dashboard = () => {
                 volume={1.0}
                 isMuted={false}
                 useNativeControls={false}
-                onPlaybackStatusUpdate={(status) => onPlaybackStatusUpdate(status, index)}
+                onPlaybackStatusUpdate={onPlaybackStatusUpdate}
               />
               {showControls && visibleVideoIndex === index && (
                 <TouchableOpacity
@@ -221,8 +216,6 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -295,12 +288,12 @@ const styles = StyleSheet.create({
     height: 5,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     borderRadius: 5,
-
   },
   progress: {
     height: "100%",
-    padding:5,
     backgroundColor: "lightgreen",
     borderRadius: 5,
   },
 });
+
+export default Dashboard;
