@@ -15,16 +15,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import * as Camera from 'expo-camera/legacy';
 import { router } from 'expo-router';
+import axios from 'axios';  // Import axios for API requests
 
 const UserProfile = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [userName, setUserName] = useState(""); 
   const [bio, setBio] = useState(''); 
   const [followers, setFollowers] = useState(0); 
-  const [media, setMedia] = useState([
-    { id: '1', uri: 'https://placekitten.com/200/300' },
-    { id: '2', uri: 'https://placekitten.com/300/200' },
-  ]);
+  const [media, setMedia] = useState([]); // Initialize as empty array
   const [profileImage, setProfileImage] = useState(null);
 
   const fetchUserData = () => {
@@ -34,10 +32,22 @@ const UserProfile = () => {
           const parsedUser = JSON.parse(user);
           setUserName(parsedUser.userName || "User");
           // Optionally, you can fetch and set the profile image from storage here
+          fetchUserPosts(parsedUser.userName); // Fetch posts when user data is fetched
         }
       })
       .catch(error => {
         console.log("Error fetching user data: ", error);
+      });
+  };
+
+  // Fetch user posts from backend
+  const fetchUserPosts = (userName) => {
+    axios.get(`https://kap-backend.onrender.com/user/userPost/${userName}`)
+      .then(response => {
+        setMedia(response.data);
+      })
+      .catch(error => {
+        console.log("Error fetching user posts: ", error);
       });
   };
 
@@ -48,6 +58,7 @@ const UserProfile = () => {
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     setTimeout(() => {
+      fetchUserData(); // Refresh user data and posts
       setRefreshing(false);
       console.log('Screen refreshed!');
     }, 2000);
@@ -110,7 +121,7 @@ const UserProfile = () => {
           <View style={styles.profileImageContainer}>
             <Image
               style={styles.profileImage}
-              source={profileImage ? { uri:profileImage } : require('../../assets/user-avatar.png')}
+              source={profileImage ? { uri: profileImage } : require('../../assets/user-avatar.png')}
             />
             {!profileImage && (
               <TouchableOpacity style={styles.addPhotoButton} onPress={handleImagePick}>
