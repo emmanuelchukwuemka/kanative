@@ -34,6 +34,17 @@ export default function CameraScreen({ navigation }) {
   const cameraRef = useRef(null);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const recordingTimeout = useRef(null);
+  const fetchUserData = async () => {
+    try {
+      const user = await AsyncStorage.getItem("user");
+      if (user) {
+        const parsedUser = JSON.parse(user);
+        setUserName(parsedUser.userName || "User");
+      }
+    } catch (error) {
+      console.log("Error fetching user data: ", error);
+    }
+  };
 
   useEffect(() => {
     fetchUserData();
@@ -201,7 +212,7 @@ export default function CameraScreen({ navigation }) {
       });
   };
 
-
+ 
 
   const pickImageFromGallery = () => {
     ImagePicker.launchImageLibraryAsync({
