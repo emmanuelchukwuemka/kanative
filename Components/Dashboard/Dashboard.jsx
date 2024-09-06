@@ -135,7 +135,7 @@ const Dashboard = () => {
                 ref={(ref) => (videoRefs.current[index] = ref)}
                 source={{ uri: item.url }}
                 style={styles.postMedia}
-                resizeMode="cover"
+                resizeMode="contain"
                 isLooping
                 shouldPlay={visibleVideoIndex === index && isPlaying}
                 volume={1.0}
@@ -163,7 +163,7 @@ const Dashboard = () => {
             <Image
               source={{ uri: item.url }}
               style={styles.postMedia}
-              resizeMode="cover"
+              resizeMode="contain"
             />
           )}
           <View style={styles.overlay}>

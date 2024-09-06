@@ -257,7 +257,7 @@ export default function CameraScreen({ navigation }) {
     return (
       <SafeAreaView style={styles.container}>
         {mediaType === "image" ? (
-          <Image source={{ uri: capturedMedia }} style={styles.camera} />
+          <Image source={{ uri: capturedMedia }} style={styles.camera} resizeMode="contain"/>
         ) : (
           <Video
             source={{ uri: capturedMedia }}

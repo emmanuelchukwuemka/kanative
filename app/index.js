@@ -35,7 +35,7 @@ export default function Page() {
   return (
     <View style={styles.container}>
       {isSplash ? <SplashScreen /> : <Landing />}
-      <Toast ref={(ref) => Toast.setRef(ref)} />
+      <Toast />
     </View>
   );
 }
