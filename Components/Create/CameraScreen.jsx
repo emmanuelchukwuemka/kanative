@@ -52,29 +52,27 @@ export default function CameraScreen({ navigation }) {
     }
   };
 
-  useEffect(() => {
-    fetchUserData();
-    (async () => {
-      const cameraStatus = await Camera.requestCameraPermissionsAsync();
-      const audioStatus = await Audio.Audio.requestPermissionsAsync();
+useEffect(() => {
+  fetchUserData();
+  (async () => {
+    const cameraStatus = await Camera.requestCameraPermissionsAsync();
+    const audioStatus = await Audio.requestPermissionsAsync(); // No need to import expo-permissions
 
-      if (
-        cameraStatus.status !== "granted" ||
-        audioStatus.status !== "granted"
-      ) {
-        Toast.show({
-          type: 'error',
-          position: 'top',
-          text1: 'Permissions required',
-          text2: 'Camera and audio permissions are required to use this feature.',
-        });
-      }
+    if (cameraStatus.status !== "granted" || audioStatus.status !== "granted") {
+      Toast.show({
+        type: "error",
+        position: "top",
+        text1: "Permissions required",
+        text2: "Camera and audio permissions are required to use this feature.",
+      });
+    }
 
-      setHasPermission(
-        cameraStatus.status === "granted" && audioStatus.status === "granted"
-      );
-    })();
-  }, []);
+    setHasPermission(
+      cameraStatus.status === "granted" && audioStatus.status === "granted"
+    );
+  })();
+}, []);
+
 
   useEffect(() => {
     let interval;
@@ -234,24 +232,32 @@ export default function CameraScreen({ navigation }) {
 
  
 
-  const pickImageFromGallery = () => {
-    ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: false,
-      quality: 1,
-    })
-      .then((result) => {
-        if (!result.canceled) {
-          const { uri, type } = result.assets[0];
-          setCapturedMedia(uri);
-          const selectedType = type === "video" ? "video" : "image";
-          setMediaType(selectedType);
-        }
-      })
-      .catch((error) => {
-        console.error("Error picking media from gallery: ", error);
-      });
-  };
+const pickImageFromGallery = async () => {
+  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync(); // Request permissions here
+  if (status !== "granted") {
+    Toast.show({
+      type: "error",
+      position: "top",
+      text1: "Permission denied",
+      text2: "Permission to access the media library is required!",
+    });
+    return;
+  }
+
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.All,
+    allowsEditing: false,
+    quality: 1,
+  });
+
+  if (!result.canceled) {
+    const { uri, type } = result.assets[0];
+    setCapturedMedia(uri);
+    const selectedType = type === "video" ? "video" : "image";
+    setMediaType(selectedType);
+  }
+};
+
 
   if (capturedMedia) {
     return (
