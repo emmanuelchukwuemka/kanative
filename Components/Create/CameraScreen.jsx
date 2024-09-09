@@ -10,6 +10,8 @@ import {
   Platform,
   StatusBar,
   TextInput,
+  ToastAndroid,
+  ActivityIndicator,
 } from "react-native";
 import { Camera, CameraType, FlashMode } from "expo-camera/legacy";
 import * as Audio from "expo-av";
@@ -32,7 +34,9 @@ export default function CameraScreen({ navigation }) {
   const [mediaType, setMediaType] = useState(null);
   const [caption, setCaption] = useState("");
   const [userName, setUserName] = useState("");
-  const [uploadProgress, setUploadProgress] = useState(0); // New state for upload progress
+    const [uploadProgress, setUploadProgress] = useState(0); // New state for upload progress
+    const [isUploading, setIsUploading] = useState(false); // State to track upload status
+    const [uploadSuccess, setUploadSuccess] = useState(false); 
   const cameraRef = useRef(null);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const recordingTimeout = useRef(null);
@@ -200,24 +204,20 @@ export default function CameraScreen({ navigation }) {
         const percentCompleted = Math.round(
           (progressEvent.loaded * 100) / progressEvent.total
         );
-        console.log(`Upload Progress: ${percentCompleted}%`); // Log progress
+        console.log(`Upload Progress: ${percentCompleted}%`);
         setUploadProgress(percentCompleted / 100);
+        setIsUploading(true)
       },
     })
     .then((response) => {
-      const mediaUri = response.data.media;
-      console.log("Media uploaded successfully to Cloudinary");
-    })
-    .then(() => {
-      Toast.show({
-        type: 'success',
-        position: 'bottom',
-        text1: 'Upload Success',
-        text2: 'Your media has been uploaded to the feed!',
-        visibilityTime: 4000,
-        autoHide: true,
-      });
-      router.replace("dashboard");
+      // const mediaUri = response.data.media;
+      setIsUploading(false)
+       setUploadSuccess(true);
+
+       setTimeout(() => {
+        setUploadSuccess(false)
+         router.replace("dashboard");
+       }, 3000);
     })
     .catch((error) => {
       console.error("Error uploading media to Cloudinary:", error);
@@ -317,16 +317,19 @@ export default function CameraScreen({ navigation }) {
         onCameraReady={handleCameraReady}
       >
         <View style={styles.overlay}>
-        {uploadProgress > 0 && (
-          <View style={styles.progressBarContainer}>
-            <View
-              style={[
-                styles.progressBar,
-                { width: `${uploadProgress * 100}%` },
-              ]}
-            />
-          </View>
-        )}
+          {isUploading && (
+            <View style={styles.uploadStatusContainer}>
+              <ActivityIndicator size="large" color="#00ff00" />
+              <Text style={styles.uploadText}>
+                Uploading... {Math.round(uploadProgress * 100)}%
+              </Text>
+            </View>
+          )}
+          {uploadSuccess && (
+            <View style={styles.successContainer}>
+              <Text style={styles.successText}>Upload Successful!</Text>
+            </View>
+          )}
           <View style={styles.flashLightContainer}>
             <TouchableOpacity
               onPress={toggleFlashMode}
@@ -376,7 +379,6 @@ export default function CameraScreen({ navigation }) {
             </TouchableOpacity>
           </View>
         </View>
-       
       </Camera>
     </SafeAreaView>
   );
@@ -473,5 +475,33 @@ const styles = StyleSheet.create({
   progressBar: {
     height: "100%",
     backgroundColor: "#00f",
+  },
+  uploadStatusContainer: {
+    position: "absolute",
+    top: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+    height:"100%",
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    justifyContent:"center"
+  },
+  uploadText: {
+    color: "white",
+    fontSize: 16,
+    marginTop: 10,
+  },
+  successContainer: {
+    backgroundColor: "green",
+    position: "absolute",
+    top: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  successText: {
+    color: "white",
+    fontSize: 12,
+    fontWeight: "bold",
   },
 });
