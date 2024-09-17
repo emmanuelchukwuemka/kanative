@@ -1,513 +1,71 @@
-import React, { useState, useRef, useEffect } from "react";
-import {
-  View,
-  TouchableOpacity,
-  StyleSheet,
-  Text,
-  SafeAreaView,
-  Image,
-  Alert,
-  Platform,
-  StatusBar,
-  TextInput,
-  ToastAndroid,
-  ActivityIndicator,
-} from "react-native";
-import { Camera, CameraType, FlashMode } from "expo-camera/legacy";
-import * as Audio from "expo-av";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import * as ImagePicker from "expo-image-picker";
-import axios from "axios";
-import { Video } from "expo-av";
-import { router } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import Toast from "react-native-toast-message";
+import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
+import { useState } from "react";
+import { Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-export default function CameraScreen({ navigation }) {
-  const [hasPermission, setHasPermission] = useState(null);
-  const [cameraType, setCameraType] = useState(CameraType.back);
-  const [flashMode, setFlashMode] = useState(FlashMode.off);
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(0);
-  const [progress, setProgress] = useState(0);
-  const [capturedMedia, setCapturedMedia] = useState(null);
-  const [mediaType, setMediaType] = useState(null);
-  const [caption, setCaption] = useState("");
-  const [userName, setUserName] = useState("");
-    const [uploadProgress, setUploadProgress] = useState(0); // New state for upload progress
-    const [isUploading, setIsUploading] = useState(false); // State to track upload status
-    const [uploadSuccess, setUploadSuccess] = useState(false); 
-  const cameraRef = useRef(null);
-  const [isCameraReady, setIsCameraReady] = useState(false);
-  const recordingTimeout = useRef(null);
-  const fetchUserData = async () => {
-    try {
-      const user = await AsyncStorage.getItem("user");
-      if (user) {
-        const parsedUser = JSON.parse(user);
-        setUserName(parsedUser.userName || "User");
-      }
-    } catch (error) {
-      console.log("Error fetching user data: ", error);
-    }
-  };
+export default function App() {
+  const [facing, setFacing] = useState < CameraType > "back";
+  const [permission, requestPermission] = useCameraPermissions();
 
-useEffect(() => {
-  fetchUserData();
-  (async () => {
-    const cameraStatus = await Camera.requestCameraPermissionsAsync();
-    const audioStatus = await Audio.requestPermissionsAsync(); // No need to import expo-permissions
-
-    if (cameraStatus.status !== "granted" || audioStatus.status !== "granted") {
-      Toast.show({
-        type: "error",
-        position: "top",
-        text1: "Permissions required",
-        text2: "Camera and audio permissions are required to use this feature.",
-      });
-    }
-
-    setHasPermission(
-      cameraStatus.status === "granted" && audioStatus.status === "granted"
-    );
-  })();
-}, []);
-
-
-  useEffect(() => {
-    let interval;
-    if (isRecording) {
-      interval = setInterval(() => {
-        setRecordingTime((prevTime) => prevTime + 1);
-        setProgress((prevProgress) => Math.min(prevProgress + 0.05, 1));
-      }, 1000);
-    } else if (!isRecording && recordingTime !== 0) {
-      clearInterval(interval);
-    }
-    return () => clearInterval(interval);
-  }, [isRecording]);
-
-  if (hasPermission === null) {
+  if (!permission) {
+    // Camera permissions are still loading.
     return <View />;
   }
-  if (hasPermission === false) {
-    return <Text>No access to camera</Text>;
-  }
 
-  const toggleCameraType = () => {
-    setCameraType((prevCameraType) =>
-      prevCameraType === CameraType.back ? CameraType.front : CameraType.back
-    );
-  };
-
-  const toggleFlashMode = () => {
-    setFlashMode((prevFlashMode) =>
-      prevFlashMode === FlashMode.off ? FlashMode.on : FlashMode.off
-    );
-  };
-
-  const takePicture = async () => {
-    if (cameraRef.current) {
-      const photo = await cameraRef.current.takePictureAsync({
-        quality: 1,
-        base64: false,
-      });
-      setCapturedMedia(photo.uri);
-      setMediaType("image");
-    }
-  };
-
-  const confirmMedia = () => {
-    if (capturedMedia) {
-      const type = mediaType === "image" ? "image/jpeg" : "video/mp4";
-      const name = mediaType === "image" ? "photo.jpg" : "video.mp4";
-      uploadMedia(capturedMedia, name, type, caption); // Pass caption to uploadMedia
-      setCapturedMedia(null);
-      setMediaType(null);
-      setCaption(""); // Reset caption after upload
-    }
-  };
-
-  const startRecording = () => {
-    if (!isCameraReady) {
-      Alert.alert("Camera is not ready yet. Please wait a moment.");
-      return;
-    }
-
-    setIsRecording(true);
-    setRecordingTime(0);
-    setProgress(0);
-
-    if (cameraRef.current) {
-      cameraRef.current
-        .recordAsync({
-          quality: Camera.Constants.VideoQuality["4K"],
-        })
-        .then((video) => {
-          setCapturedMedia(video.uri);
-          setMediaType("video");
-        })
-        .catch((error) => {
-          console.error("Error recording video: ", error);
-        });
-    }
-  };
-
-  const stopRecording = () => {
-    if (cameraRef.current && isRecording) {
-      cameraRef.current.stopRecording();
-      setIsRecording(false);
-    }
-  };
-
-  const handleCapturePressIn = () => {
-    recordingTimeout.current = setTimeout(() => {
-      startRecording();
-    }, 1500);
-  };
-
-  const handleCapturePressOut = () => {
-    if (recordingTimeout.current) {
-      clearTimeout(recordingTimeout.current);
-      if (!isRecording) {
-        takePicture();
-      } else {
-        stopRecording();
-      }
-    }
-  };
-
-  const uploadMedia = (uri, name, type, caption) => {
-    const fileUri =
-      Platform.OS === "android" && uri.startsWith("file://")
-        ? uri
-        : `file://${uri}`;
-    const formData = new FormData();
-
-    formData.append("file", {
-      uri: fileUri,
-      name: name,
-      type: type,
-    });
-    formData.append("upload_preset", "kap_preset");
-    formData.append("caption", caption);
-    formData.append("userName", userName);
-
-    axios
-    .post(`https://kap-backend.onrender.com/user/saveMedia`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-      onUploadProgress: (progressEvent) => {
-        const percentCompleted = Math.round(
-          (progressEvent.loaded * 100) / progressEvent.total
-        );
-        console.log(`Upload Progress: ${percentCompleted}%`);
-        setUploadProgress(percentCompleted / 100);
-        setIsUploading(true)
-      },
-    })
-    .then((response) => {
-      // const mediaUri = response.data.media;
-      setIsUploading(false)
-       setUploadSuccess(true);
-
-       setTimeout(() => {
-        setUploadSuccess(false)
-         router.replace("dashboard");
-       }, 3000);
-    })
-    .catch((error) => {
-      console.error("Error uploading media to Cloudinary:", error);
-      Toast.show({
-        type: 'error',
-        position: 'top',
-        text1: 'Upload Failed',
-        text2: 'There was an error uploading your media. Please try again.',
-      });
-    });
-  
-  };
-
-
- 
-
-const pickImageFromGallery = async () => {
-  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync(); // Request permissions here
-  if (status !== "granted") {
-    Toast.show({
-      type: "error",
-      position: "top",
-      text1: "Permission denied",
-      text2: "Permission to access the media library is required!",
-    });
-    return;
-  }
-
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.All,
-    allowsEditing: false,
-    quality: 1,
-  });
-
-  if (!result.canceled) {
-    const { uri, type } = result.assets[0];
-    setCapturedMedia(uri);
-    const selectedType = type === "video" ? "video" : "image";
-    setMediaType(selectedType);
-  }
-};
-
-
-  if (capturedMedia) {
+  if (!permission.granted) {
+    // Camera permissions are not granted yet.
     return (
-      <SafeAreaView style={styles.container}>
-        {mediaType === "image" ? (
-          <Image source={{ uri: capturedMedia }} style={styles.camera} resizeMode="contain"/>
-        ) : (
-          <Video
-            source={{ uri: capturedMedia }}
-            style={styles.camera}
-            resizeMode="contain"
-            shouldPlay
-            isLooping
-          />
-        )}
-        <TextInput
-          style={styles.captionInput}
-          placeholder="Add a caption..."
-          placeholderTextColor="#888"
-          value={caption}
-          autoFocus
-          onChangeText={(text) => {
-            setCaption(text);
-          }}
-        />
-        <View style={styles.overlay}>
-          <View style={styles.buttonContainer1}>
-            <TouchableOpacity
-              style={styles.iconButtonSmall}
-              onPress={() => setCapturedMedia(null)}
-            >
-              <Ionicons name="close" size={30} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.iconButtonSmall}
-              onPress={confirmMedia}
-            >
-              <Ionicons name="checkmark" size={30} color="white" />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.iconButtonSmall1}>
-              <Ionicons name="bulb" size={30} style={{ color: "lightgreen" }} />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </SafeAreaView>
+      <View style={styles.container}>
+        <Text style={styles.message}>
+          We need your permission to show the camera
+        </Text>
+        <Button onPress={requestPermission} title="grant permission" />
+      </View>
     );
   }
 
-  const handleCameraReady = () => {
-    setIsCameraReady(true);
-  };
+  function toggleCameraFacing() {
+    setFacing((current) => (current === "back" ? "front" : "back"));
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Camera
-        style={styles.camera}
-        type={cameraType}
-        flashMode={flashMode}
-        ref={cameraRef}
-        onCameraReady={handleCameraReady}
-      >
-        <View style={styles.overlay}>
-          {isUploading && (
-            <View style={styles.uploadStatusContainer}>
-              <ActivityIndicator size="large" color="#00ff00" />
-              <Text style={styles.uploadText}>
-                Uploading... {Math.round(uploadProgress * 100)}%
-              </Text>
-            </View>
-          )}
-          {uploadSuccess && (
-            <View style={styles.successContainer}>
-              <Text style={styles.successText}>Upload Successful!</Text>
-            </View>
-          )}
-          <View style={styles.flashLightContainer}>
-            <TouchableOpacity
-              onPress={toggleFlashMode}
-              style={styles.iconButtonSmall1}
-            >
-              <Ionicons
-                name={
-                  flashMode === FlashMode.off
-                    ? "flash-off"
-                    : flashMode === FlashMode.on
-                    ? "flash"
-                    : "flash-auto"
-                }
-                size={30}
-                color="yellow"
-              />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.buttonContainer2}>
-            <TouchableOpacity onPress={toggleCameraType}>
-              <Ionicons
-                name="camera-reverse-outline"
-                size={30}
-                style={{ color: "white" }}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.captureButton}
-              onPressIn={handleCapturePressIn}
-              onPressOut={handleCapturePressOut}
-            >
-              <View style={styles.progressCircle}>
-                <View
-                  style={[
-                    styles.progressFill,
-                    { height: `${progress * 100}%` },
-                  ]}
-                />
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={pickImageFromGallery}>
-              <Ionicons
-                name="image-outline"
-                size={30}
-                style={{ color: "white" }}
-              />
-            </TouchableOpacity>
-          </View>
+    <View style={styles.container}>
+      <CameraView style={styles.camera} facing={facing}>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
+            <Text style={styles.text}>Flip Camera</Text>
+          </TouchableOpacity>
         </View>
-      </Camera>
-    </SafeAreaView>
+      </CameraView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "black",
     justifyContent: "center",
+  },
+  message: {
+    textAlign: "center",
+    paddingBottom: 10,
   },
   camera: {
     flex: 1,
-    justifyContent: "flex-end",
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.3)",
-    justifyContent: "space-between",
   },
   buttonContainer: {
+    flex: 1,
     flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    marginBottom: 100,
+    backgroundColor: "transparent",
+    margin: 64,
   },
-
-  buttonContainer2: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    marginBottom: 50,
-  },
-  buttonContainer1: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    marginTop: Platform.OS === "android" ? StatusBar.currentHeight + 10 : 10,
-  },
-  flashLightContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    marginTop: Platform.OS === "android" ? StatusBar.currentHeight + 10 : 10,
-  },
-  iconButtonSmall: {
-    backgroundColor: "#444",
-    padding: 10,
-    borderRadius: 30,
-    opacity: 0.8,
-  },
-  iconButtonSmall1: {
-    backgroundColor: "#444",
-    padding: 10,
-    borderRadius: 30,
-    opacity: 0.8,
-  },
-  captureButton: {
+  button: {
+    flex: 1,
+    alignSelf: "flex-end",
     alignItems: "center",
   },
-  progressCircle: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: "green",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  progressFill: {
-    width: 30,
-    height: 30,
-    backgroundColor: "white",
-    borderRadius: 35,
-  },
-  captionInput: {
-    color: "white",
-    padding: 10,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    marginHorizontal: 20,
-    borderRadius: 5,
-    marginTop: 10,
-    borderWidth: 2,
-    width: "100%",
-  },
-  progressBarContainer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 5,
-    backgroundColor: "red",
-  },
-  progressBar: {
-    height: "100%",
-    backgroundColor: "#00f",
-  },
-  uploadStatusContainer: {
-    position: "absolute",
-    top: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-    height:"100%",
-    left: 0,
-    right: 0,
-    alignItems: "center",
-    justifyContent:"center"
-  },
-  uploadText: {
-    color: "white",
-    fontSize: 16,
-    marginTop: 10,
-  },
-  successContainer: {
-    backgroundColor: "green",
-    position: "absolute",
-    top: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-    left: 0,
-    right: 0,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  successText: {
-    color: "white",
-    fontSize: 12,
+  text: {
+    fontSize: 24,
     fontWeight: "bold",
+    color: "white",
   },
 });

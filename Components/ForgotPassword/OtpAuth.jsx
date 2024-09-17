@@ -23,7 +23,7 @@ const OtpAuth = () => {
 
   const otpInputs = useRef([]);
 
-  const verifyUrl = "http://192.168.10.142:8000/user/verifyNumber";
+  const verifyUrl = "https://kap-backend.onrender.com/user/verifyNumber";
 
   const validationSchema = Yup.object().shape({
     phone: Yup.string().required("Phone number is required"),

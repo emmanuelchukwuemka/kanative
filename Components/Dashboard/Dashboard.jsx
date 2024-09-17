@@ -14,7 +14,7 @@ import {
   Modal,
   TextInput,
   Button,
-    Share, 
+  Share,
   TouchableWithoutFeedback,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -87,12 +87,10 @@ const Dashboard = () => {
         const firstPost = response.data.mediaPosts[0];
 
         if (firstPost.format === "mp4") {
-          
-          setVisibleVideoIndex(0); 
+          setVisibleVideoIndex(0);
           setIsPlaying(true);
-          videoRefs.current[0]?.playAsync(); 
+          videoRefs.current[0]?.playAsync();
         } else {
-          
           setVisibleVideoIndex(null);
           setIsPlaying(false);
         }
@@ -191,7 +189,7 @@ const Dashboard = () => {
 
     // Send the like/unlike request to the server
     axios
-      .post("http://192.168.0.103:8000/user/like", {
+      .post("https://kap-backend.onrender.com/user/like", {
         postId,
         userId,
         action: alreadyLiked ? "unlike" : "like",
@@ -213,7 +211,7 @@ const Dashboard = () => {
     if (!commentText.trim()) return;
 
     axios
-      .post("http://192.168.0.103:8000/user/comment", {
+      .post("https://kap-backend.onrender.com/user/comment", {
         postId: selectedPostId,
         userId: id,
         comment: commentText,
@@ -228,33 +226,32 @@ const Dashboard = () => {
       });
   };
 
-    const addWatermarkToMedia = async (mediaUrl) => {
-      // Here you should implement or use a library that adds watermark to the media.
-   
-      return mediaUrl; 
-    };
+  const addWatermarkToMedia = async (mediaUrl) => {
+    // Here you should implement or use a library that adds watermark to the media.
 
-    const handleShare = async (post) => {
-      try {
-        const watermarkedUrl = await addWatermarkToMedia(post.url);
-        const result = await Share.share({
-          message: `Check out this post: ${watermarkedUrl}`,
-        });
+    return mediaUrl;
+  };
 
-        if (result.action === Share.sharedAction) {
-          if (result.activityType) {
-            console.log("Shared with activity type: ", result.activityType);
-          } else {
-            console.log("Shared");
-          }
-        } else if (result.action === Share.dismissedAction) {
-          console.log("Dismissed");
+  const handleShare = async (post) => {
+    try {
+      const watermarkedUrl = await addWatermarkToMedia(post.url);
+      const result = await Share.share({
+        message: `Check out this post: ${watermarkedUrl}`,
+      });
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          console.log("Shared with activity type: ", result.activityType);
+        } else {
+          console.log("Shared");
         }
-      } catch (error) {
-        console.error("Error sharing post: ", error);
+      } else if (result.action === Share.dismissedAction) {
+        console.log("Dismissed");
       }
-    };
-
+    } catch (error) {
+      console.error("Error sharing post: ", error);
+    }
+  };
 
   const renderPost = ({ item, index }) => {
     // Ensure item.userLiked is always an array
