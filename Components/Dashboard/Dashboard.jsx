@@ -34,10 +34,12 @@ const Dashboard = () => {
   const [showControls, setShowControls] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadingFetch, setLoadingFetch] = useState(true);
   const [videoProgress, setVideoProgress] = useState(0);
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [selectedPostId, setSelectedPostId] = useState(null);
+  
 
   const videoRefs = useRef([]);
   let comments = [
@@ -253,126 +255,120 @@ const Dashboard = () => {
     }
   };
 
-  const renderPost = ({ item, index }) => {
-    // Ensure item.userLiked is always an array
-    const userLiked = item.userLiked || [];
+const renderPost = ({ item, index }) => {
+  const userLiked = item.userLiked || [];
 
-    return (
-      <View style={styles.postCard}>
-        {loading ? (
-          <ActivityIndicator size="large" color="#fff" />
-        ) : (
-          <>
-            {item.format === "mp4" ? (
-              <TouchableOpacity
+  return (
+    <View style={styles.postCard}>
+      {loading ? (
+        <ActivityIndicator size="large" color="#fff" />
+      ) : (
+        <>
+          {item.format === "mp4" ? (
+            <TouchableOpacity
+              style={styles.postMedia}
+              onPress={() => handleVideoPress(index)}
+              activeOpacity={1}
+            >
+              <Video
+                ref={(ref) => (videoRefs.current[index] = ref)}
+                source={{ uri: item.url }}
                 style={styles.postMedia}
-                onPress={handleVideoPress}
-                activeOpacity={1}
-              >
-                <Video
-                  ref={(ref) => (videoRefs.current[index] = ref)}
-                  source={{ uri: item.url }}
-                  style={styles.postMedia}
-                  resizeMode="contain"
-                  isLooping
-                  shouldPlay={visibleVideoIndex === index && isPlaying}
-                  volume={1.0}
-                  isMuted={false}
-                  useNativeControls={false}
-                  onPlaybackStatusUpdate={onPlaybackStatusUpdate}
-                />
-                {showControls && visibleVideoIndex === index && (
-                  <TouchableOpacity
-                    style={styles.playPauseButton}
-                    onPress={() => handlePlayPause(index)}
-                  >
-                    <Icon
-                      name={isPlaying ? "pause" : "play"}
-                      size={50}
-                      color="#fff"
-                    />
-                  </TouchableOpacity>
-                )}
-                <View style={styles.progressBar}>
-                  <View
-                    style={[
-                      styles.progress,
-                      { width: `${videoProgress * 100}%` },
-                    ]}
+                resizeMode="contain"
+                isLooping
+                shouldPlay={visibleVideoIndex === index && isPlaying}
+                volume={1.0}
+                isMuted={false}
+                useNativeControls={false}
+                onPlaybackStatusUpdate={(status) =>
+                  onPlaybackStatusUpdate(status, index)
+                }
+              />
+              {showControls && visibleVideoIndex === index && (
+                <TouchableOpacity
+                  style={styles.playPauseButton}
+                  onPress={() => handlePlayPause(index)}
+                >
+                  <Icon
+                    name={isPlaying ? "pause" : "play"}
+                    size={50}
+                    color="#fff"
                   />
-                </View>
-              </TouchableOpacity>
-            ) : (
+                </TouchableOpacity>
+              )}
+              <View style={styles.progressBar}>
+                <View
+                  style={[
+                    styles.progress,
+                    { width: `${videoProgress * 100}%` },
+                  ]}
+                />
+              </View>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.postMediaContainer}>
+              {loadingFetch && (
+                <ActivityIndicator
+                  size="large"
+                  color="#ffffff"
+                  style={styles.loadingIndicator}
+                />
+              )}
               <Image
                 source={{ uri: item.url }}
                 style={styles.postMedia}
                 resizeMode="contain"
+                onLoadStart={() => setLoadingFetch(true)} // Start loading
+                onLoadEnd={() => setLoadingFetch(false)} // End loading when the image is fully loaded
               />
-            )}
-            <View style={styles.overlay}>
-              <View style={styles.bottomContainer}>
-                <View style={styles.userInfo}>
-                  <Image
-                    source={require("../../assets/images.png")}
-                    style={styles.profilePic}
-                  />
-                  <Text style={styles.userNameText}>
-                    {item.username || "Unknown"}
-                  </Text>
+            </View>
+          )}
+          <View style={styles.overlay}>
+            <View style={styles.bottomContainer}>
+              <View style={styles.userInfo}>
+                <Image
+                  source={require("../../assets/images.png")}
+                  style={styles.profilePic}
+                />  
+                <Text style={styles.userNameText}>
+                  {item.username || "Unknown"}
+                </Text>
+              </View>
+              <Text style={styles.captionText}>{item.caption || ""}</Text>
+
+              {/* Reaction container */}
+              <View style={styles.reactionsContainer}>
+                <Icon name="eye-outline" size={30} color="#fff" />
+                <View style={{ flexDirection: "column", alignItems: "center" }}>
+                  <TouchableOpacity onPress={() => handleLike(item._id, index)}>
+                    <Icon
+                      name={userLiked.includes(id) ? "heart" : "heart-outline"}
+                      size={27}
+                      color={userLiked.includes(id) ? "red" : "#fff"}
+                    />
+                  </TouchableOpacity>
+                  {item.likes > 0 && (
+                    <Text style={styles.likesText}>{item.likes}</Text>
+                  )}
                 </View>
-                <Text style={styles.captionText}>{item.caption || ""}</Text>
-                <View style={styles.reactionsContainer}>
-                  <Icon name="eye-outline" size={30} color="#fff" />
-                  <View
-                    style={{ flexDirection: "column", alignItems: "center" }}
+                <View style={{ flexDirection: "column", alignItems: "center" }}>
+                  <TouchableOpacity
+                    onPress={() => handleCommentIconPress(item._id)}
                   >
-                    <TouchableOpacity
-                      onPress={() => handleLike(item._id, index)}
-                    >
-                      {/* Conditionally render the heart icon based on whether the user liked the post */}
-                      <Icon
-                        name={
-                          userLiked.includes(id) ? "heart" : "heart-outline"
-                        }
-                        size={27}
-                        color={userLiked.includes(id) ? "red" : "#fff"}
-                      />
-                    </TouchableOpacity>
-
-                    {/* Conditionally show likes count if it's greater than 0 */}
-                    {item.likes > 0 && (
-                      <Text style={styles.likesText}>{item.likes}</Text>
-                    )}
-                  </View>
-
-                  <View
-                    style={{
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: 4,
-                    }}
-                  >
-                    <TouchableOpacity
-                      onPress={() => handleCommentIconPress(item._id)}
-                    >
-                      <Icon name="chatbubble-outline" size={25} color="#fff" />
-                    </TouchableOpacity>
-                    {/* Conditionally show comments count if it's greater than 0 */}
-                    {comments.length > 0 && (
-                      <Text style={styles.likesText}>{comments.length}</Text>
-                    )}
-                  </View>
-                  <TouchableOpacity onPress={() => handleShare(item)}>
-                    <Icon name="share-outline" size={25} color="#fff" />
+                    <Icon name="chatbubble-outline" size={25} color="#fff" />
                   </TouchableOpacity>
                 </View>
+                <TouchableOpacity onPress={() => handleShare(item)}>
+                  <Icon name="share-outline" size={25} color="#fff" />
+                </TouchableOpacity>
               </View>
             </View>
-          </>
-        )}
-      </View>
-    );
-  };
+          </View>
+        </>
+      )}
+    </View>
+  );
+};
 
   return (
     <SafeAreaView style={styles.container}>
@@ -392,7 +388,16 @@ const Dashboard = () => {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
+        initialNumToRender={7} // Initially render 7 items
+        maxToRenderPerBatch={7} // Render 7 items per batch
+        windowSize={3} // Keep 3 screens' worth of items in memory
+        getItemLayout={(data, index) => ({
+          length: screenHeight,
+          offset: screenHeight * index,
+          index,
+        })}
       />
+
       {/* Comment Modal */}
       <Modal
         visible={showCommentModal}
@@ -461,12 +466,43 @@ const styles = StyleSheet.create({
   },
   overlay: {
     position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
     bottom: 0,
-    justifyContent: "flex-end",
+    width: "100%",
+    paddingHorizontal: 10,
+    paddingBottom: 75, // Ensure padding is enough to stay above the tab menu
+    zIndex: 1, // Make sure this view stays on top
+  },
+  bottomContainer: {
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
     padding: 10,
+    borderRadius: 8,
+    flexDirection: "column",
+  },
+  reactionsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 10,
+    zIndex: 1, // Ensure this stays visible on top
+  },
+  profilePic: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  userInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 5,
+  },
+  captionText: {
+    color: "#fff",
+    marginBottom: 10,
+  },
+  likesText: {
+    color: "#fff",
+    fontSize: 12,
+    marginTop: 2,
   },
   bottomContainer: {
     justifyContent: "flex-end",
@@ -559,6 +595,17 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     color: "#000",
     width: "100%",
+  },
+
+  postMedia: {
+    width: "100%",
+    height: "80%",
+  },
+  loadingIndicator: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: [{ translateX: -25 }, { translateY: -25 }],
   },
 });
 

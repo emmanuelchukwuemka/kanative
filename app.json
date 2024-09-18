@@ -4,7 +4,6 @@
     "slug": "kap-app",
     "scheme": "kap-scheme",
     "version": "1.0.0",
-    
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -27,23 +26,17 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-
-      "package": "com.dranonymous_1.kapapp"
+      "package": "com.kap.kapapp",
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+         "RECORD_AUDIO"
+      ]
     },
-    
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-router", "react-native-vision-camera", 
-      [
-        "expo-camera",
-        {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
-          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
-          "recordAudioAndroid": true
-        }
-      ]
-    ],
     "extra": {
       "router": {
         "origin": false
