@@ -94,7 +94,7 @@ const CustomDrawer = props => {
               : navigation.navigate('Dashboard');
           }}
           style={{flex: 1, alignItems: 'center', flexDirection: 'row'}}>
-          {item?.title === 'Add Vehicle' || item?.title === 'My Vehicles' ? (
+          {/* {item?.title === 'Add Vehicle' || item?.title === 'My Vehicles' ? (
             <Image
               source={require('./../assets/images/png/car.png')}
               style={{
@@ -126,7 +126,7 @@ const CustomDrawer = props => {
                 height: wp('7%'),
               }}
             />
-          )}
+          )} */}
 
           <Text
             style={[
@@ -242,7 +242,6 @@ const CustomDrawer = props => {
         keyExtractor={item => item?.id}
         renderItem={itemTitleCard}
       />
-
     </DrawerContentScrollView>
   );
 };
@@ -272,6 +271,5 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.light_grey,
     borderBottomWidth: 1.5,
     marginHorizontal: wp('3%'),
-
   },
 });
