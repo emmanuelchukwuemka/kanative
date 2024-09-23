@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="26.767" height="26.774" viewBox="0 0 26.767 26.774">
+  <g id="loud-speaker" transform="translate(0.25 0.256)">
+    <g id="Group_337" data-name="Group 337" transform="translate(6.912 0)">
+      <g id="Group_336" data-name="Group 336">
+        <path id="Path_353" data-name="Path 353" d="M23.664,26.5a.707.707,0,0,1-.249-.046L5.442,19.544A.691.691,0,0,1,5,18.9V10.6a.691.691,0,0,1,.442-.646L23.415,3.046a.692.692,0,0,1,.94.646v22.12a.692.692,0,0,1-.691.691ZM6.382,18.423,22.972,24.8V4.7L6.382,11.079Z" transform="translate(-5 -3)" fill="#fff" stroke="#fff" stroke-width="0.5"/>
+      </g>
+    </g>
+    <g id="Group_339" data-name="Group 339" transform="translate(0 6.913)">
+      <g id="Group_338" data-name="Group 338">
+        <path id="Path_354" data-name="Path 354" d="M7.6,17.677H2.765A2.768,2.768,0,0,1,0,14.912V10.765A2.768,2.768,0,0,1,2.765,8H7.6a.691.691,0,0,1,.691.691v8.295A.691.691,0,0,1,7.6,17.677ZM2.765,9.382a1.383,1.383,0,0,0-1.382,1.382v4.147a1.383,1.383,0,0,0,1.382,1.382H6.912V9.382Z" transform="translate(0 -8)" fill="#fff" stroke="#fff" stroke-width="0.5"/>
+      </g>
+    </g>
+    <g id="Group_341" data-name="Group 341" transform="translate(4.147 15.209)">
+      <g id="Group_340" data-name="Group 340">
+        <path id="Path_355" data-name="Path 355" d="M9.221,25.06H5.074a.691.691,0,0,1-.684-.594L3.007,14.788a.691.691,0,0,1,.588-.781.7.7,0,0,1,.781.588l1.3,9.083H8.447l-.924-8.231a.694.694,0,0,1,.61-.765.7.7,0,0,1,.765.61l1.009,9a.691.691,0,0,1-.686.769Z" transform="translate(-3 -14.001)" fill="#fff" stroke="#fff" stroke-width="0.5"/>
+      </g>
+    </g>
+  </g>
+</svg>
