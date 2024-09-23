@@ -57,34 +57,6 @@ const Logs = () => {
             </Text>
           </View>
         </View>
-
-        <View
-          style={{
-            backgroundColor: colors.off_white,
-            borderRadius: 15,
-            padding: wp('2%'),
-            borderWidth: 1.5,
-            borderColor: colors.light_grey,
-          }}>
-          <Slider
-            style={{width: wp('79%')}}
-            minimumValue={0}
-            maximumValue={10}
-            minimumTrackTintColor={colors.secondary}
-            maximumTrackTintColor={colors.light_grey}
-            onValueChange={value => {
-              setValue(Math.round(value));
-            }}
-          />
-          <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-            <Text style={[MainStyling.subHeading, {color: colors.grey}]}>
-              0
-            </Text>
-            <Text style={[MainStyling.subHeading, {color: colors.grey}]}>
-              {value}/10
-            </Text>
-          </View>
-        </View>
       </View>
     );
   };
@@ -92,12 +64,7 @@ const Logs = () => {
     <SafeAreaView style={[MainStyling.mainContainer, {}]}>
       <Headers iconLeft={false} title={'Hello, Jasmine'} />
       <View style={[MainStyling.dividerTwo]}></View>
-      <ScrollView style={[MainStyling.screenPaddingTwo]}>
-        <LogCard title={'Overall'} />
-        <LogCard title={'Personal'} />
-        <LogCard title={'Relationship'} />
-        <LogCard title={'Work'} />
-      </ScrollView>
+
       <Button
         label={'Submit'}
         labelStyle={[MainStyling.buttonText]}

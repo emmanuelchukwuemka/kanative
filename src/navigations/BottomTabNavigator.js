@@ -4,22 +4,11 @@ import {Platform, View, Pressable} from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Feather from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {useNavigation} from '@react-navigation/native';
 import colors from '../assets/colors/colors';
 import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {Text} from 'react-native';
 import MainStyling from '../assets/styles/MainStyling';
-import GetStarted from '../screens/getStarted/GetStarted';
-import Dashboard from '../screens/Dashboard/Dashboard';
-import Support from '../screens/support/Support';
-import ClientDetails from '../screens/Client/ClientDetails';
-import ClientListDetails from '../screens/Client/ClientListDetails';
-import ClientList from '../screens/Client/ClientList';
-import Coach from '../screens/coach/Coach';
 import Logs from '../screens/logs/Logs';
-import Settings from '../screens/settings/Settings';
-import Tools from '../screens/tools/Tools';
-import ProfileScreen from '../screens/auth/Profile';
 import {createStackNavigator} from '@react-navigation/stack';
 
 const Tab = createBottomTabNavigator();
@@ -31,16 +20,6 @@ function LogsStackNavigator() {
       <Stack.Screen
         name="LogsMain"
         component={Logs}
-        options={{headerShown: false}}
-      />
-      <Stack.Screen
-        name="Coach"
-        component={Coach}
-        options={{headerShown: false}}
-      />
-      <Stack.Screen
-        name="ClientList"
-        component={ClientList}
         options={{headerShown: false}}
       />
     </Stack.Navigator>
@@ -93,7 +72,7 @@ function BottomTabNavigator({route}) {
 
   return (
     <Tab.Navigator
-      initialRouteName={'Dashboard'}
+      initialRouteName={'Home'}
       screenOptions={{headerShown: false, tabBarHideOnKeyboard: true}}
       safeAreaInsets={{
         top: 0,
@@ -157,7 +136,7 @@ function BottomTabNavigator({route}) {
           </View>
         );
       }}>
-      <Tab.Screen name={'Home'} component={Dashboard} />
+      <Tab.Screen name={'Home'} component={LogsStackNavigator} />
       <Tab.Screen
         options={{
           tabBarLabel: 'Tools',
@@ -165,7 +144,7 @@ function BottomTabNavigator({route}) {
           headerShown: false,
         }}
         name="Tools"
-        component={Tools}
+        component={LogsStackNavigator}
       />
       <Tab.Screen
         options={{
@@ -175,8 +154,6 @@ function BottomTabNavigator({route}) {
         }}
         name="Logs"
         component={LogsStackNavigator}
-        // component={Coach}
-        // component={ClientList}
       />
       <Tab.Screen
         options={{
@@ -185,20 +162,11 @@ function BottomTabNavigator({route}) {
           headerShown: false,
         }}
         name="Settings"
-        component={ProfileScreen}
+        component={LogsStackNavigator}
       />
-      {/* <Tab.Screen
-        options={{
-          tabBarLabel: 'Settings',
-          title: '',
-          headerShown: false,
-        }}
-        name="Settings"
-        component={Settings}
-      /> */}
       <Tab.Screen
         name={'messages'}
-        component={Support}
+        component={LogsStackNavigator}
         options={{
           tabBarLabel: 'messages',
           title: '',
