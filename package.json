@@ -26,7 +26,6 @@
     "react-native": "0.75.3",
     "react-native-date-picker": "^5.0.4",
     "react-native-gesture-handler": "^2.18.1",
-    "react-native-image-picker": "^7.1.2",
     "react-native-linear-gradient": "^2.8.3",
     "react-native-modal-datetime-picker": "^17.1.0",
     "react-native-raw-bottom-sheet": "^3.0.0",
@@ -35,12 +34,13 @@
     "react-native-safe-area-context": "^4.10.8",
     "react-native-screens": "^3.34.0",
     "react-native-simple-line-chart": "^0.34.4",
-    "react-native-splash-screen": "^3.3.0",
     "react-native-svg": "^15.6.0",
     "react-native-svg-transformer": "^1.5.0",
     "react-native-swiper": "^1.6.0",
+    "react-native-swiper-flatlist": "^3.2.5",
     "react-native-tabs": "^1.0.9",
     "react-native-vector-icons": "^10.1.0",
+    "react-native-video": "^6.6.2",
     "react-redux": "^9.1.2"
   },
   "devDependencies": {
